@@ -20,6 +20,13 @@ ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urando
 docker run --name client1 -dit --net=mcv  --privileged=true --ip=192.168.1.124 -v /opt/client1:/usr/liuxing:ro javabase3
 docker run --name feign1 -dit --net=mcv  --privileged=true --ip=10.0.15.96 -v /var/log/applog:/var/log/applog  -v /opt/feign1:/usr/liuxing:ro liuxingjavabase4
 
+docker run 命令参数详解：
+  --oom-score-adj=170 数值越大，越容易被kill
+  --oom-kill-disable 保护该容器进程不被杀死，此参数在实际环境中作用不大，因为进程通常默认都是此值，所以设置前面的参数更为有效
+  --memory=256m 限制容器支取宿主机内存的最大值
+  --cpu="1.5"  如果时两核的，则此设置含义为可以用1.5个，生产环境没用过这个配置，意义不大
+
+
 4、建立容器
 首先建立网络，前提是设置混杂模式 ：ip link set eno16777984  promisc on
 我们使用macvlan，请参考使用下面的链接
