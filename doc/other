@@ -1,0 +1,6 @@
+自建jar包时，比如common3
+  需注意pom.xml文件的build，要写成这个样子，这样就不会把jar包引进去了，其它项目引用这个自建jar时也不会报找不到class的错误了。
+  	<build>
+		<finalName>common3</finalName>
+	</build>
+ 	
