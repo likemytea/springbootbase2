@@ -1,0 +1,3 @@
+ docker stats  
+ docker top 容器id
+ 

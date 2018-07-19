@@ -1,0 +1,47 @@
+安装
+一 下载并解压redis安装包
+    wget http://download.redis.io/releases/redis-4.0.6.tar.gz
+二 进入到解压后的目录下cd redis-4.0.6 ，进行编译安装  make MALLOC=libc
+三 进入到 redis-4.0.6/src 下 执行命令 make install
+     使用命令 redis-4.0.6/src目录下的文件加到/usr/local/bin目录
+四 安装完毕，开始测试
+  先切换到redis src目录下  执行：./redis-server
+ 这种启动方式不方便，使用后台启动方式：
+   修改配置文件redis.conf   daemonize no　  -->yes
+  然后 在 /root/liuxing/redis4/redis-4.0.6/src 下
+  执行 ./redis-server /root/liuxing/redis4/redis-4.0.6/redis.conf 
+  
+程序配置
+完全参考这个即可https://blog.csdn.net/WALK_MAN_wubiao/article/details/79183179
+一 pom.xml
+<!-- 整合redis -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-redis</artifactId>
+    <version>1.7.2.RELEASE</version>
+</dependency>
+<!-- redis客户端操作 -->
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>2.8.0</version>
+</dependency>  
+二配置文件
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,3 @@
+yum list installed |grep maria
+yum remove mariadb-libs
+systemctl status mysqld
