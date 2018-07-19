@@ -25,6 +25,18 @@ docker run 命令参数详解：
   --oom-kill-disable 保护该容器进程不被杀死，此参数在实际环境中作用不大，因为进程通常默认都是此值，所以设置前面的参数更为有效
   --memory=256m 限制容器支取宿主机内存的最大值
   --cpu="1.5"  如果时两核的，则此设置含义为可以用1.5个，生产环境没用过这个配置，意义不大
+查看操作系统最容易被kill的进程
+编辑如下文件----------
+#!/bin/bash
+for proc in $(find /proc -maxdepth 1 -regex '/proc/[0-9]+'); do
+printf "%2d %5d %s\n" \
+"$(cat $proc/oom_score)" \
+"$(basename $proc)" \
+"$(cat $proc/cmdline | tr '\0' ' ' | head -c 50)"
+done 2>/dev/null | sort -nr | head -n 10
+-------------
+chmod +x oomscore.sh 
+./oomscore.sh 
 
 
 4、建立容器
