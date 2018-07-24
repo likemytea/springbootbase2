@@ -1,0 +1,14 @@
+==单数据源使用及配置==
+一/pom文件追加依赖包
+二/properties追加数据源
+三/写javaconfig类
+四/完毕
+==多数据源使用及配置==
+一、在配置文件新增配置
+二、在DBConfig.java 文件修改并新增配置
+三、使用jdbctemplate的地方，在声明实例的地方，使用 Qualifier配置注解。如下：
+
+  	@Qualifier("myJdbcTemplatep1")
+	private MyJdbcTemplate myjdbcTemplate;
+四、在其中一个数据源上指定@Primary注解，不指定会报异常。
+五、完毕！	
