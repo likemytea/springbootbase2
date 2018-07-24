@@ -1,3 +1,4 @@
+==源码在 demoshardingjdbc 工程里==
 ==单数据源使用及配置==
 一/pom文件追加依赖包
 二/properties追加数据源
