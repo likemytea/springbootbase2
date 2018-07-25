@@ -66,3 +66,4 @@ docker build -t liuxingjavabase .
 
 docker save -o lwieske-java-8.tar lwieske/java-8
 docker load -i lwieske-java-8.tar
+docker network  disconnect -f multi-host-network client2
