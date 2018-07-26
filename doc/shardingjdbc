@@ -1,4 +1,4 @@
-==源码在 demoshardingjdbc 工程里==
+==单数据源和多数据源配置源码在 demomultiDatasource 工程里==
 ==单数据源使用及配置==
 一、pom文件追加依赖包
   主要追加spring-jdbc的jar包，连接池和mysql的就省略不说了
@@ -21,3 +21,15 @@
 	private MyJdbcTemplate myjdbcTemplate;
 四、在其中一个数据源上指定@Primary注解，不指定会报异常。
 五、完毕！	
+======sharding jdbc源码在 demoshardingjdbc=======================
+1、pom文件在多数据源demo上追加依赖包
+        <!-- sharding jdbc start  -->
+		<dependency>
+		    <groupId>io.shardingsphere</groupId>
+		    <artifactId>sharding-jdbc</artifactId>
+		    <version>3.0.0.M1</version>
+		</dependency>
+        <!-- sharding jdbc end  -->
+        
+2、新建 DBShardingConfig.java 文件
+
