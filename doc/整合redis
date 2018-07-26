@@ -1,5 +1,6 @@
 安装
 一 下载并解压redis安装包
+    yum -y install gcc-c++
     wget http://download.redis.io/releases/redis-4.0.6.tar.gz
 二 进入到解压后的目录下cd redis-4.0.6 ，进行编译安装  make MALLOC=libc
 三 进入到 redis-4.0.6/src 下 执行命令 make install
@@ -7,7 +8,8 @@
 四 安装完毕，开始测试
   先切换到redis src目录下  执行：./redis-server
  这种启动方式不方便，使用后台启动方式：
-   修改配置文件redis.conf   daemonize no　  -->yes
+   修改配置文件redis.conf   daemonize no　  -->yes  bing --> 0.0.0.0
+                                           
   然后 在 /root/liuxing/redis4/redis-4.0.6/src 下
   执行 ./redis-server /root/liuxing/redis4/redis-4.0.6/redis.conf 
   
@@ -30,18 +32,15 @@
     <artifactId>jedis</artifactId>
     <version>2.8.0</version>
 </dependency>  
-二配置文件
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+二、配置文件
+详见properties文件
+三、代码
+代码写在common里
+配置文件写在引用common的工程里，并且引用common的工程的启动类上添加扫描common包和自己工程包的注解
+@ComponentScan(basePackages = { "com.chenxing.demoshardingjdbc", "com.chenxing.common" })
+基础配置redistemplate  RedisConfig.java
+接口和实现类
+RedisService.java
+RedisServiceImpl.java
+测试类
+DemoshardingjdbcApplicationTests.java
