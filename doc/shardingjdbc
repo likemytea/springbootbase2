@@ -1,11 +1,19 @@
 ==源码在 demoshardingjdbc 工程里==
 ==单数据源使用及配置==
-一/pom文件追加依赖包
-二/properties追加数据源
-三/写javaconfig类
+一、pom文件追加依赖包
+  主要追加spring-jdbc的jar包，连接池和mysql的就省略不说了
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>   
+二、properties追加数据源
+   留意这个要写下，其余的配置看源码。
+   spring.cloud.config.server.jdbc=true
+三、写javaconfig类
+     看源码
 四/完毕
 ==多数据源使用及配置==
-一、在配置文件新增配置
+一、在properties配置文件新增配置
 二、在DBConfig.java 文件修改并新增配置
 三、使用jdbctemplate的地方，在声明实例的地方，使用 Qualifier配置注解。如下：
 
