@@ -1,5 +1,5 @@
 注意：springcloud的 yml中的key-value中，value和:之间要有空格。
-
+注册发现服务的高可用 及 oauth2 https://blog.csdn.net/w1054993544/article/details/78932614
 1、安装docker
 https://docs.docker.com/engine/installation/linux/docker-ce/centos/#set-up-the-repository
 

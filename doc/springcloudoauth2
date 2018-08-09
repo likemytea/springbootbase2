@@ -1,0 +1,105 @@
+使用springcloudsecurity springcloudsecurityOauth2 实现单点登陆及权限管理
+看前必读：
+主要讲解OAUTH2.0的基础  http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html
+简单的demo  https://segmentfault.com/a/1190000011098539
+制作oauth2授权服务器 https://blog.csdn.net/qq_27384769/article/details/79443242
+=============
+
+springcloudoauth2单点登陆笔记
+使用场景：你可能有多个应用服务部署在服务器上，也就是多个client，然后你想用一个认证服务器来进行登陆的统一管理。那么，下面就是你想要的：
+搭建认证服务器（新建一个maven工程，以及基本的webjar包引入就略了）：
+1.jar
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security.oauth</groupId>
+			<artifactId>spring-security-oauth2</artifactId>
+		</dependency>
+2.启动类追加注解
+@EnableAuthorizationServer
+@RestController
+3.初始化资源服务器
+	@Configuration
+	@EnableResourceServer
+	protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
+		@Override
+		public void configure(HttpSecurity http) throws Exception {
+			// @formatter:off
+			http.antMatcher("/user").authorizeRequests().anyRequest().authenticated();
+			// @formatter:on
+		}
+	}
+初始化上面的/user路径后，编辑业务逻辑
+	@RequestMapping({ "/user", "/me" })
+	public Map<String, String> user(Principal principal) {
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("name", principal.getName() + "刘兴");
+		map.put("workaddress", "东升科技园");
+		return map;
+	}
+4.最后编辑配置文件
+security:
+  oauth2:
+    client:
+      client-id: acme            //client服务和认证服务之间的协议id
+      client-secret: acmesecret   //与上面对应的 协议id密码
+      scope: read,write             //作用域
+      auto-approve-scopes: '.*'   //自动通过，不用弹出选择框了
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+搭建client服务器
+1.jar
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security.oauth</groupId>
+			<artifactId>spring-security-oauth2</artifactId>
+		</dependency>
+2.启动类追加注解
+@EnableOAuth2Sso
+@EnableAutoConfiguration
+3.编辑配置文件
+server:
+  port: 9999
+security:
+  oauth2:
+    client:
+      client-id: acme
+      client-secret: acmesecret
+      access-token-uri: http://localhost:8080/oauth/token
+      user-authorization-uri: http://localhost:8080/oauth/authorize
+    resource:
+      user-info-uri: http://localhost:8080/user
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+4.最后写一个restapi
+	@RequestMapping("/client")
+	public Principal home(Principal user) {
+		return user;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

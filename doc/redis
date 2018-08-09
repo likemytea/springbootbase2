@@ -11,8 +11,8 @@
    修改配置文件redis.conf   daemonize no　  -->yes  bing --> 0.0.0.0
                                            
   然后 在 /root/liuxing/redis4/redis-4.0.6/src 下
-  执行 ./redis-server /root/liuxing/redis4/redis-4.0.6/redis.conf 
-  
+  执行 启动 ./redis-server /root/liuxing/redis4/redis-4.0.6/redis.conf 
+           关闭 redis-cli -p 6379 shutdown
 程序配置
 完全参考这个即可https://blog.csdn.net/WALK_MAN_wubiao/article/details/79183179
 一 pom.xml
