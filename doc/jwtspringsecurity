@@ -1,0 +1,22 @@
+基于文章：https://segmentfault.com/a/1190000009231329
+一.简介： jwt - json  web token 简单的说：就是服务端根据一个密码和算法生成token，然后发给客户端，
+      客户端只负责每次请求都在header里边带上token，然后服务端负责验证这个token是不是合法的，有
+  没有过期等，并可以解析出subject和claim里边的数据。
+二.使用流程：
+   1。配置策略类来配置哪些url请求需要拦截，哪些不需要拦截，配置登陆使用哪个拦截器拦截
+   2。登陆操作时，被我们自定义的jwtloginfilter拦截器拦截（里边三个方法，试图拦截，拦截成功，拦截失败），
+               拦截后在我们自定义的拦截功能类里边认证。认证成功后进入前面的第二步：拦截成功或第三部拦截失败，在这
+               两步里边就直接response给请求方了，流程结束。
+   3。其它任何访问请求，先被自定义的授权服务器（JWTAuthenticationFilter）拦截，验证jwt的合法性，不合法则调用jwt默认的组建返回异常信息，
+               验证成功则执行真正的请求。               
+               
+三.前端使用流程
+          前端页面登录成功后拿到token值，首先要将其存在本地，localStorage或者sessionStorage皆可。
+          然后添加前端的拦截器，在每次请求之前将此token值放入request对象的header中即可。
+          
+          
+验证demo：
+使用账号密码登陆：
+curl -H "Content-Type: application/json" -X POST -d '{"username":"zhangsan","password":"111111"}' http://172.16.176.51:8080/login
+使用jwt访问资源：
+curl -H "Content-Type: application/json" -H "Authorization: Bearer jwtxxxxxx" http://172.16.176.51:8080/users

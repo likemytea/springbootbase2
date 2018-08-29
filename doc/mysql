@@ -1,3 +1,16 @@
 yum list installed |grep maria
 yum remove mariadb-libs
 systemctl status mysqld
+
+systemctl enable mysqld
+systemctl start mysqld
+grep 'temporary password' /var/log/mysqld.log
+VQf0+#dxr<og
+mysql -u root -p
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'Liuxing009!';
+GRANT ALL PRIVILEGES ON *.* TO 'liuxing'@'%' IDENTIFIED BY 'Liuxing009!' WITH GRANT OPTION;
+
+/etc/my.cnf
+[mysqld]
+character_set_server=utf8
+init_connect='SET NAMES utf8'
