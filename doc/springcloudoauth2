@@ -32,6 +32,7 @@ springcloudoauth2单点登陆笔记
 		}
 	}
 初始化上面的/user路径后，编辑业务逻辑
+如果自建 java类，需要@RestController
 	@RequestMapping({ "/user", "/me" })
 	public Map<String, String> user(Principal principal) {
 		Map<String, String> map = new LinkedHashMap<>();
