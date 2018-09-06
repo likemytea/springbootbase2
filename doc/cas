@@ -1,3 +1,6 @@
+简介：cas中央认证服务，casserver 主要就是给浏览器生成个ticket，这个ticket如果在浏览器上，那各个cas-client就能共用这个
+ticket了，从而达到一个casclient登陆，所有casclient都可用了。cas-client实现单点登陆主要就是实现些filter，
+登陆filter（拦截登陆），验证filter（拦截携带ticket），授权filter（权限）
 一.cas -server
 下面两篇文章主要用于构建CAS服务器和服务器https证书
 https://blog.csdn.net/pucao_cug/article/details/68945379
