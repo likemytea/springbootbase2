@@ -19,3 +19,65 @@ keytool -import -alias cjTomcat -keystore cacerts -file a.crt  导入证书 ，�
 开始----------参考文章
 https://blog.csdn.net/yelllowcong/article/details/79241777
 结束！
+三.配置cas-server数据库===================
+摘要： 在github上获取overlay版本 https://github.com/apereo/cas-overlay-template/tree/4.2
+    Overlay的意思就是覆盖文件，即如果是配置文件则覆盖相同目录中的文件，如果是类文件则编译后覆盖相同包中的类class文件，如果是新文件则添加到相应的目录中。
+实施步骤：
+1.修改cas的认证方式，密码校验改为数据库方式
+首先追加依赖
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.0.29</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>6.0.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+           <groupId>org.jasig.cas</groupId>
+           <artifactId>cas-server-support-jdbc</artifactId>
+           <version>${cas.version}</version>
+        </dependency> 
+  需要注意的是：mysql connector6.0以上版本的driveClassName用的是com.mysql.cj.jdbc.Driver，连接字符串也需要增加serverTimezone=UTC否则会报错
+2.修改用户认证的类
+    新建deployerConfigContext.xml
+    从target/WEB-INF下copy一份      deployerConfigContext.xml 到src\main\webapp\WEB-INF\下面
+  a. 注释掉使用配置文件验证的方式   <alias name="acceptUsersAuthenticationHandler" alias="primaryAuthenticationHandler" />    
+  b. 
+    <!-- 使用自定义类实现从数据库获取账户信息校验，我的这个类是重写了源码里的queryDatabaseAuthenticationHandler  -->
+	<alias name="queryLiuxingDatabaseAuthHandler" alias="primaryAuthenticationHandler" />
+	<!-- 使用自定义数据源  -->
+	<alias name="dataSource" alias="queryDatabaseDataSource" />
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+    <property name="url"
+        value="jdbc:mysql://172.16.31.43:3306/rbac?characterEncoding=utf-8&amp;serverTimezone=UTC&amp;useSSL=false"/>
+        <property name="username" value="liuxing" />
+        <property name="password" value="Liuxing009!" />
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="validationQueryTimeout" value="10000" />
+        <property name="initialSize" value="1" />
+        <property name="minIdle" value="1" />
+        <property name="maxActive" value="10" />
+        <property name="maxWait" value="10000" />
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <property name="testWhileIdle" value="true" />
+        <property name="poolPreparedStatements" value="true" />
+        <property name="maxPoolPreparedStatementPerConnectionSize"   value="20" />
+        <property name="defaultAutoCommit" value="true" />
+        <property name="validationQuery" value="select 1 " />
+        <!-- 超过时间限制是否回收-->
+        <property name="removeAbandoned" value="true" />
+        <!-- 超时时间；单位为秒。180秒=3分钟-->
+        <property name="removeAbandonedTimeout" value="30" />
+        <!-- 关闭abanded连接时输出错误日志 -->
+        <property name="logAbandoned" value="true" />
+        </bean>  
+   c. 修改配置文件 cas.properties
+      cas.jdbc.authn.query.encode.salt=
+      cas.jdbc.authn.query.sql=SELECT password FROM sys_user WHERE username=?
+   d. 数据库以及表都自己定义
+   完毕！
