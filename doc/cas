@@ -18,8 +18,10 @@ keytool -import -alias cjTomcat -keystore cacerts -file a.crt  导入证书 ，�
 
 开始----------参考文章
 https://blog.csdn.net/yelllowcong/article/details/79241777
+demo  工程 cas-overlay-client cas-overlay-client2 访问地址 https://172.16.176.51:8443/
 结束！
 三.配置cas-server数据库===================
+https://blog.csdn.net/wangwenke2003/article/details/80348998
 摘要： 在github上获取overlay版本 https://github.com/apereo/cas-overlay-template/tree/4.2
     Overlay的意思就是覆盖文件，即如果是配置文件则覆盖相同目录中的文件，如果是类文件则编译后覆盖相同包中的类class文件，如果是新文件则添加到相应的目录中。
 实施步骤：
