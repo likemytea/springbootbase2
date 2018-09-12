@@ -1,4 +1,6 @@
+https://springcloud.cc/spring-security-zhcn.html
 https://www.cnblogs.com/softidea/p/7068149.html
+springserurity集群 https://blog.csdn.net/timedifier2/article/details/53261711
 1.前后端架构
 后端：spring security +spring boot 
 前端：
