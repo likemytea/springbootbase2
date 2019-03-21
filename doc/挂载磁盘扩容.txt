@@ -1,0 +1,19 @@
+一.查看系统磁盘使用状况
+df -h
+二.利用空余磁盘扩容
+
+1.首先查看磁盘状况
+  fdisk -l
+2.创建pv
+  为新加的空闲磁盘创建为一个系统PV
+  pvcreate /dev/xvdb
+3.将 PV（物理卷） /dev/xvdb添加到卷组VolGroup中
+  首先使用 vgs 命令查看VolGroup 容量
+  然后使用命令添加到VolGroup
+  vgextend  VolGroup  /dev/xvdb
+  然后查看结果  vgs
+4.为/ 添加500G的空间
+  lvextend -L +500G  /dev/mapper/VolGroup-lv_root
+5.逻辑卷扩展后并不会马上生效，需要使用“resize2fs”命令重新加载逻辑卷的大小。  
+  resize2fs /dev/VolGroup/lv_root
+  最后df -h 查看我们的扩容成果
