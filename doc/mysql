@@ -14,3 +14,18 @@ GRANT ALL PRIVILEGES ON *.* TO 'liuxing'@'%' IDENTIFIED BY 'Liuxing009!' WITH GR
 [mysqld]
 character_set_server=utf8
 init_connect='SET NAMES utf8'
+=========mysql 连接数 =================================
+1. mysql连接方式：mysql的连接都是tcp长连接，比如连接池初始化为20或者最大连接数1000，那就是20，或1000个tcp长连接，
+所有针对数据库的访问，都使用这1000个长连接管道进行访问数据库操作
+2. 什么情况下数据库会主动关闭这些长连接：关闭条件是超过如下几个条件阀值：connect_timeout （连接过程超时）  wait_timeout（非活动时间超时） interactive_timeout（非活动时间超时） net_read_timeout（活动连接超时） net_write_timeout（活动连接超时）
+查看这些timeout的方式是，命令行进入mysql: mysql -u root -p
+然后使用此命令： show global variables like '%timeout%'; 注意：不使用global的情况。
+wait_timeout 非交互式访问（普通的应用程序增删改查数据库操作） 针对休眠等非活动状态的超时限制
+interactive_timeout 交互式访问（比如用客户端工具连接数据库） 针对休眠等非活动状态的超时限制
+net_read_timeout  活动状态下超时限制，比如持续读操作
+net_write_timeout 活动状态下超时限制，比如持续insert操作
+如果mysql主动关闭连接，应用程序还访问连接池里边的连接，就会报如下错误：
+Communications link failure
+The last packet successfully received from the server was 1,173,375 milliseconds ago.  The last packet sent successfully to the server was 18,953 milliseconds ago.
+3. 状态转换：当应用程序从数据库直接获取连接或从连接池获取连接后，访问数据库获取返回值后，此连接就进
+入休眠（sleep）状态。当这个连接从sleep开始到x时间，x时间超过wait_timeout后，这个连接就被mysql服务主动回收。
