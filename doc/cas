@@ -46,7 +46,7 @@ https://blog.csdn.net/wangwenke2003/article/details/80348998
   需要注意的是：mysql connector6.0以上版本的driveClassName用的是com.mysql.cj.jdbc.Driver，连接字符串也需要增加serverTimezone=UTC否则会报错
 2.修改用户认证的类
     新建deployerConfigContext.xml
-    从target/WEB-INF下copy一份      deployerConfigContext.xml 到src\main\webapp\WEB-INF\下面
+    用mvn打包后从target/WEB-INF下copy一份      deployerConfigContext.xml 到src\main\webapp\WEB-INF\下面
   a. 注释掉使用配置文件验证的方式   <alias name="acceptUsersAuthenticationHandler" alias="primaryAuthenticationHandler" />    
   b. 
     <!-- 使用自定义类实现从数据库获取账户信息校验，我的这个类是重写了源码里的queryDatabaseAuthenticationHandler  -->
