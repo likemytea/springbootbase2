@@ -83,3 +83,4 @@ https://blog.csdn.net/wangwenke2003/article/details/80348998
       cas.jdbc.authn.query.sql=SELECT password FROM sys_user WHERE username=?
    d. 数据库以及表都自己定义
    完毕！
+   
