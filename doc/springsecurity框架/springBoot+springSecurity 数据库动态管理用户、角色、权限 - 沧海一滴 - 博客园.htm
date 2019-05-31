@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>springBoot+springSecurity 数据库动态管理用户、角色、权限 - 沧海一滴 - 博客园</title>
+    <meta property="og:description" content="使用spring Security3的四种方法概述 那么在Spring Security3的使用中，有4种方法： 一种是全部利用配置文件，将用户、权限、资源(url)硬编码在xml文件中，已经实现过，">
+    <link type="text/css" rel="stylesheet" href="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-coffee.css">
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-coffee-mobile.css">
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/softidea/rss">
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/softidea/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/softidea/wlwmanifest.xml">
+    <script src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/amp4ads-host-v0.js"></script><script src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_rendering_2019052302.js"></script><script async="" src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/analytics.js"></script><script type="text/javascript" src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/encoder.js"></script><script src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/jquery-2.js"></script>
+    <script>var currentBlogId=84872;var currentBlogApp='softidea',cb_enable_mathjax=false;var isLogined=false;</script>
+    <script src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/default.css"><link rel="preload" href="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js" as="script"><script type="text/javascript" src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js"></script><script src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_2019052302.js" async=""></script></head>
+<body>
+<a name="top"></a>
+
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="https://www.cnblogs.com/softidea/"><img id="blogLogo" src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/logo.gif" alt="返回主页"></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/softidea/">沧海一滴</a></h1>
+<h2><div style="text-align: center;margin-right:120">
+<img style="display: block; margin-left: auto; margin-right: auto;" src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/280044-20181106202835313-1017586049.jpg" alt="微信扫描二维码，关注我的公众号">
+</div></h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="navigator">
+			
+<ul id="navList">
+	<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a></li>
+	<li><a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/softidea/">首页</a></li>
+	<li></li>
+	<li><a id="blog_nav_contact" accesskey="9" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4">联系</a></li>
+	<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+	<li>
+	</li>
+</ul>
+
+
+			<div class="blogStats">
+				
+				<div id="blog_stats">
+<!--done-->
+随笔- 3590&nbsp;
+文章- 0&nbsp;
+评论- 373&nbsp;
+</div>
+				
+			</div><!--end: blogStats -->
+		</div><!--end: navigator 博客导航栏 -->
+		
+        <div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class="post">
+		<h1 class="postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/softidea/p/7068149.html">springBoot+springSecurity 数据库动态管理用户、角色、权限</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body" class="blogpost-body"><p>&nbsp;</p>
+<p>使用spring Security3的四种方法概述</p>
+<p>那么在Spring Security3的使用中，有4种方法：</p>
+<p>一种是全部利用配置文件，将用户、权限、资源(url)硬编码在xml文件中，已经实现过，并经过验证；</p>
+<p>二种是用户和权限用数据库存储，而资源(url)和权限的对应采用硬编码配置，目前这种方式已经实现，并经过验证。</p>
+<p> 三种是细分角色和权限，并将用户、角色、权限和资源均采用数据库存储，并且自定义过滤器，代替原有的FilterSecurityInterceptor过滤器，<br>    并分别实现AccessDecisionManager、InvocationSecurityMetadataSourceService和UserDetailsService，并在配置文件中进行相应配置。<br>    目前这种方式已经实现，并经过验证。</p>
+<p>http://blog.csdn.net/woshisap/article/details/7250428</p>
+<p>&nbsp;</p>
+<p><br>添加 Spring Security 配置类<br>添加spring security到我们应用中第一步是要创建Spring Security Java 配置类。<br>这个配置创建一个叫springSecurityFilterChain的Servlet过滤器，来对我们应用中所有的安全相关的事项（保护应用的所有url，验证用户名密码，表单重定向等）负责。</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.security.config.annotation.web.builders.HttpSecurity;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+  
+@Configuration
+@EnableWebSecurity
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> SecurityConfiguration <span style="color: #0000ff;">extends</span><span style="color: #000000;"> WebSecurityConfigurerAdapter {
+  
+    @Autowired
+    CustomSuccessHandler customSuccessHandler;
+  
+    @Autowired
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> configureGlobalSecurity(AuthenticationManagerBuilder auth) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        auth.inMemoryAuthentication().withUser(</span>"bill").password("abc123").roles("USER"<span style="color: #000000;">);
+        auth.inMemoryAuthentication().withUser(</span>"admin").password("root123").roles("ADMIN"<span style="color: #000000;">);
+        auth.inMemoryAuthentication().withUser(</span>"dba").password("root123").roles("ADMIN","DBA"<span style="color: #000000;">);
+    }
+  
+    @Override
+    </span><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> configure(HttpSecurity http) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+      http.authorizeRequests()
+        .antMatchers(</span>"/", "/home").access("hasRole('USER')"<span style="color: #000000;">)
+        .antMatchers(</span>"/admin/**").access("hasRole('ADMIN')"<span style="color: #000000;">)
+        .antMatchers(</span>"/db/**").access("hasRole('ADMIN') and hasRole('DBA')"<span style="color: #000000;">)
+        .and().formLogin().loginPage(</span>"/login"<span style="color: #000000;">).successHandler(customSuccessHandler)
+        .usernameParameter(</span>"ssoId").passwordParameter("password"<span style="color: #000000;">)
+        .and().csrf()
+        .and().exceptionHandling().accessDeniedPage(</span>"/Access_Denied"<span style="color: #000000;">);
+    }
+  
+}</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p>http://www.2cto.com/kf/201605/506019.html</p>
+<p>&nbsp;</p>
+<p>序：&nbsp;<br>本文使用springboot+mybatis＋SpringSecurity 实现数据库动态的管理用户、角色、权限管理</p>
+<p>本文细分角色和权限，并将用户、角色、权限和资源均采用数据库存储，并且自定义滤器，代替原有的FilterSecurityInterceptor过滤器，&nbsp;<br>并分别实现AccessDecisionManager、InvocationSecurityMetadataSourceService和UserDetailsService，并在配置文件中进行相应配置。<a name="t0" target="_blank"></a></p>
+<h1 id="spring-security的简单原理"><em id="__mceDel">spring security的简单原理：</em></h1>
+<p>使用众多的拦截器对url拦截，以此来管理权限。但是这么多拦截器，笔者不可能对其一一来讲，主要讲里面核心流程的两个。</p>
+<p>首先，权限管理离不开登陆验证的，所以登陆验证拦截器AuthenticationProcessingFilter要讲；&nbsp;<br>还有就是对访问的资源管理吧，所以资源管理拦截器AbstractSecurityInterceptor要讲；</p>
+<p>但拦截器里面的实现需要一些组件来实现，所以就有了AuthenticationManager、accessDecisionManager等组件来支撑。</p>
+<p>现在先大概过一遍整个流程，<br>用户登陆，会被AuthenticationProcessingFilter拦截(即认证管理)，调用
+AuthenticationManager的实现，而且AuthenticationManager会调用ProviderManager来获取用户验
+证信息（不同的Provider调用的服务不同，因为这些信息可以是在数据库上，可以是在LDAP服务器上，可以是xml配置文件上等），<br>如果验证通过后会将用户的权限信息封装一个User放到spring的<span style="color: #ff0000; font-size: 14pt;"><strong>全局缓存SecurityContextHolder中</strong></span>，以备后面访问资源时使用。&nbsp;<br><br>访问资源（即授权管理），访问url时，会通过AbstractSecurityInterceptor拦截器拦截，<br>其中会调用FilterInvocationSecurityMetadataSource的方法来获取被<span style="color: #ff0000; font-size: 18pt;"><strong>拦截url所需的全部权限</strong></span>，<br>在
+调用授权管理器AccessDecisionManager，这个授权管理器会通过spring的全局缓存SecurityContextHolder获
+取用户的权限信息，还会获取被拦截的url和被拦截url所需的全部权限，然后根据所配的策略（有：一票决定，一票否定，少数服从多数等），如果权限足
+够，则返回，权限不够则报错并调用权限不足页面。<br><br></p>
+<p>&nbsp;</p>
+<p><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/280044-20170623082158366-1297167693.jpg" alt=""></p>
+<p>&nbsp;</p>
+<p>http://blog.csdn.net/u013412066/article/details/50667960</p>
+<hr>
+<h1 id="重要"><a name="t1" target="_blank"></a>重要</h1>
+<p>本文设计和代码是基于 上一篇博客（请点击）</p>
+<p><a href="http://blog.csdn.net/u012373815/article/details/54632176" target="_blank">springboot+mybatis＋SpringSecurity 实现用户角色数据库管理</a></p>
+<p>进行修改。</p>
+<hr>
+<p>本文目录：&nbsp;<br>1：数据库表设计&nbsp;<br>2：权限表的业务&nbsp;<br>3：springSecurity 配置修改&nbsp;<br>4：修改home.html 文件&nbsp;<br>5：修改HomeController.<a class="replace_word" title="Java 知识库" href="http://lib.csdn.net/base/java" target="_blank">Java</a>&nbsp;文件&nbsp;<br>6：<a class="replace_word" title="软件测试知识库" href="http://lib.csdn.net/base/softwaretest" target="_blank">测试</a>检验</p>
+<p>目录结构如下：</p>
+<h1 id="1数据库表设计">1：数据库表设计</h1>
+<p>由于本文增加了权限表所以本文的数据库表为5个分别是： 用户表、角色表、权限表、用户角色中间表、角色权限中间表</p>
+<p><img title="" src="http://img.blog.csdn.net/20170120183903104?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMjM3MzgxNQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="这里写图片描述"></p>
+<p>初始化数据</p>
+<pre><code class="hljs dockerfile">    注意：Sys_permission 表的url通配符为两颗星，比如说 /<span class="hljs-keyword">user</span>下的所有url，应该写成 /<span class="hljs-keyword">user</span>/**;
+    权限的名字可以随意起名</code></pre>
+<p>&nbsp;</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #0000ff;">DROP</span> <span style="color: #0000ff;">TABLE</span> <span style="color: #0000ff;">IF</span> <span style="color: #808080;">EXISTS</span><span style="color: #000000;"> `Sys_User`;
+</span><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> `Sys_User`(
+  `id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;"> AUTO_INCREMENT,
+  `username` </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">200</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  `password` </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">200</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (`id`)
+) ENGINE</span><span style="color: #808080;">=</span>INNODB CHARSET<span style="color: #808080;">=</span>utf8mb4 COLLATE<span style="color: #808080;">=</span><span style="color: #000000;">utf8mb4_general_ci;
+
+</span><span style="color: #0000ff;">DROP</span> <span style="color: #0000ff;">TABLE</span> <span style="color: #0000ff;">IF</span> <span style="color: #808080;">EXISTS</span><span style="color: #000000;"> `Sys_Role`;
+</span><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> `Sys_Role`(
+`id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;"> AUTO_INCREMENT,
+`name` </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">200</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (`id`)
+) ENGINE</span><span style="color: #808080;">=</span>INNODB CHARSET<span style="color: #808080;">=</span>utf8mb4 COLLATE<span style="color: #808080;">=</span><span style="color: #000000;">utf8mb4_general_ci;
+
+</span><span style="color: #0000ff;">DROP</span> <span style="color: #0000ff;">TABLE</span> <span style="color: #0000ff;">IF</span> <span style="color: #808080;">EXISTS</span><span style="color: #000000;"> `Sys_permission`;
+</span><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> `Sys_permission`(
+  `id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;"> AUTO_INCREMENT,
+  `name` </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">200</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  `description` </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">200</span>) <span style="color: #0000ff;">DEFAULT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  `url` </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">200</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  `pid` </span><span style="color: #0000ff;">BIGINT</span> <span style="color: #0000ff;">DEFAULT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (`id`)
+) ENGINE</span><span style="color: #808080;">=</span>INNODB CHARSET<span style="color: #808080;">=</span>utf8mb4 COLLATE<span style="color: #808080;">=</span><span style="color: #000000;">utf8mb4_general_ci;
+
+
+</span><span style="color: #0000ff;">DROP</span> <span style="color: #0000ff;">TABLE</span> <span style="color: #0000ff;">IF</span> <span style="color: #808080;">EXISTS</span><span style="color: #000000;"> `Sys_role_user`;
+</span><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> `Sys_role_user`(
+  `id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;"> AUTO_INCREMENT,
+  `sys_user_id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  `sys_role_id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (`id`)
+) ENGINE</span><span style="color: #808080;">=</span>INNODB CHARSET<span style="color: #808080;">=</span>utf8mb4 COLLATE<span style="color: #808080;">=</span><span style="color: #000000;">utf8mb4_general_ci;
+
+
+</span><span style="color: #0000ff;">DROP</span> <span style="color: #0000ff;">TABLE</span> <span style="color: #0000ff;">IF</span> <span style="color: #808080;">EXISTS</span><span style="color: #000000;"> `Sys_permission_role`;
+</span><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> `Sys_permission_role`(
+  `id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;"> AUTO_INCREMENT,
+  `role_id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  `permission_id` </span><span style="color: #0000ff;">BIGINT</span> UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (`id`)
+) ENGINE</span><span style="color: #808080;">=</span>INNODB CHARSET<span style="color: #808080;">=</span>utf8mb4 COLLATE<span style="color: #808080;">=</span><span style="color: #000000;">utf8mb4_general_ci;
+
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> SYS_USER (id,username, password) <span style="color: #0000ff;">values</span> (<span style="color: #800000; font-weight: bold;">1</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">admin</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">admin</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> SYS_USER (id,username, password) <span style="color: #0000ff;">values</span> (<span style="color: #800000; font-weight: bold;">2</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">abel</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">abel</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> SYS_ROLE(id,name) <span style="color: #0000ff;">values</span>(<span style="color: #800000; font-weight: bold;">1</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">ROLE_ADMIN</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> SYS_ROLE(id,name) <span style="color: #0000ff;">values</span>(<span style="color: #800000; font-weight: bold;">2</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">ROLE_USER</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> SYS_ROLE_USER(SYS_USER_ID,sys_role_id) <span style="color: #0000ff;">values</span>(<span style="color: #800000; font-weight: bold;">1</span>,<span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> SYS_ROLE_USER(SYS_USER_ID,sys_role_id) <span style="color: #0000ff;">values</span>(<span style="color: #800000; font-weight: bold;">2</span>,<span style="color: #800000; font-weight: bold;">2</span><span style="color: #000000;">);
+
+</span><span style="color: #0000ff;">INSERT</span> <span style="color: #0000ff;">INTO</span> `Sys_permission` <span style="color: #0000ff;">VALUES</span> (<span style="color: #ff0000;">'</span><span style="color: #ff0000;">1</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">ROLE_HOME</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">home</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">/</span><span style="color: #ff0000;">'</span>, <span style="color: #0000ff;">null</span>), (<span style="color: #ff0000;">'</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">ROLE_ADMIN</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">ABel</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">/admin</span><span style="color: #ff0000;">'</span>, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">INSERT</span> <span style="color: #0000ff;">INTO</span> `Sys_permission_role` <span style="color: #0000ff;">VALUES</span> (<span style="color: #ff0000;">'</span><span style="color: #ff0000;">1</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">1</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">1</span><span style="color: #ff0000;">'</span>), (<span style="color: #ff0000;">'</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">1</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">'</span>), (<span style="color: #ff0000;">'</span><span style="color: #ff0000;">3</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">1</span><span style="color: #ff0000;">'</span>);</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<h1 id="2权限表的业务代码">2：权限表的业务代码</h1>
+<h2 id="21-java-bean"><a name="t4" target="_blank"></a>2.1 java bean</h2>
+<h4 id="permissionjava"><a name="t5" target="_blank"></a>Permission.java</h4>
+<pre name="code" class="prettyprint"><code class="hljs java has-numbering"><span class="hljs-keyword"><span class="hljs-keyword">package</span> com.us.example.domain;
+
+<span class="hljs-javadoc"><span class="hljs-comment">/**
+ * Created by yangyibo on 17/1/20.
+ */</span>
+<span class="hljs-keyword"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">Permission</span> </span>{
+
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> <span class="hljs-keyword"><span class="hljs-keyword">int</span> id;
+    <span class="hljs-comment"><span class="hljs-comment">//权限名称</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> String name;
+
+    <span class="hljs-comment"><span class="hljs-comment">//权限描述</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> String descritpion;
+
+    <span class="hljs-comment"><span class="hljs-comment">//授权链接</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> String url;
+
+    <span class="hljs-comment"><span class="hljs-comment">//父节点id</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> <span class="hljs-keyword"><span class="hljs-keyword">int</span> pid;
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">int</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">getId</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> id;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">setId</span><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span> id)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">this</span>.id = id;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> String </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">getName</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> name;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">setName</span><span class="hljs-params">(String name)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">this</span>.name = name;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> String </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">getDescritpion</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> descritpion;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">setDescritpion</span><span class="hljs-params">(String descritpion)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">this</span>.descritpion = descritpion;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> String </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">getUrl</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> url;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">setUrl</span><span class="hljs-params">(String url)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">this</span>.url = url;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">int</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">getPid</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> pid;
+    }
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">setPid</span><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span> pid)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">this</span>.pid = pid;
+    }
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h2 id="22-dao-层"><a name="t6" target="_blank"></a>2.2 dao 层</h2>
+<p>在 com.us.example.dao 包下新建PermissionDao.java 文件。</p>
+<h4 id="permissiondaojava"><a name="t7" target="_blank"></a>PermissionDao.java</h4>
+<pre name="code" class="prettyprint"><code class="hljs java has-numbering"><span class="hljs-keyword"><span class="hljs-keyword">package</span> com.us.example.dao;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> com.us.example.config.MyBatisRepository;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> com.us.example.domain.Permission;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-javadoc"><span class="hljs-comment">/**
+ * Created by yangyibo on 17/1/20.
+ */</span>
+<span class="hljs-keyword"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">interface</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">PermissionDao</span> </span>{
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;Permission&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">findAll</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;Permission&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">findByAdminUserId</span><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span> userId)</span></span>;
+}
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>在src/resource/mapper目录下新建对应的mapper.xml 文件</p>
+<h4 id="permissiondaomapperxml"><a name="t8" target="_blank"></a>PermissionDaoMapper.xml</h4>
+<pre name="code" class="prettyprint"><code class="hljs xml has-numbering"><span class="hljs-pi"><span class="php"><span class="hljs-meta">&lt;?</span>xml version=<span class="hljs-string">"1.0"</span> encoding=<span class="hljs-string">"UTF-8"</span> <span class="hljs-meta">?&gt;</span></span>
+<span class="hljs-doctype"><span class="hljs-meta">&lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">mapper</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">namespace</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"com.us.example.dao.PermissionDao"</span>&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">select</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">id</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"findAll"</span>  </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">resultType</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"com.us.example.domain.Permission"</span>&gt;</span>
+
+   SELECT * from Sys_permission ;
+<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">select</span>&gt;</span>
+
+ <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">select</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">id</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"findByAdminUserId"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">parameterType</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"int"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">resultType</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"com.us.example.domain.Permission"</span>&gt;</span>
+      select p.*
+        from Sys_User u
+        LEFT JOIN sys_role_user sru on u.id= sru.Sys_User_id
+        LEFT JOIN Sys_Role r on sru.Sys_Role_id=r.id
+        LEFT JOIN Sys_permission_role spr on spr.role_id=r.id
+        LEFT JOIN Sys_permission p on p.id =spr.permission_id
+        where u.id=#{userId}
+ <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">select</span>&gt;</span>
+ <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">mapper</span>&gt;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h1 id="3springsecurity-配置修改"><a name="t9" target="_blank"></a>3：springSecurity 配置修改</h1>
+<h2 id="31-修改-websecurityconfigjava"><a name="t10" target="_blank"></a>3.1 修改 WebSecurityConfig.java</h2>
+<p>修改com.us.example.config包下的 WebSecurityConfig.java 文件如下：</p>
+<pre name="code" class="prettyprint"><code class="hljs avrasm has-numbering scala"><span class="hljs-keyword">package</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.config<span class="hljs-comment">;
+
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.service<span class="hljs-preprocessor">.<span class="hljs-type">CustomUserService</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.service<span class="hljs-preprocessor">.<span class="hljs-type">MyFilterSecurityInterceptor</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.beans<span class="hljs-preprocessor">.factory<span class="hljs-preprocessor">.annotation<span class="hljs-preprocessor">.<span class="hljs-type">Autowired</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.context<span class="hljs-preprocessor">.annotation<span class="hljs-preprocessor">.<span class="hljs-type">Bean</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.context<span class="hljs-preprocessor">.annotation<span class="hljs-preprocessor">.<span class="hljs-type">Configuration</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.config<span class="hljs-preprocessor">.annotation<span class="hljs-preprocessor">.authentication<span class="hljs-preprocessor">.builders<span class="hljs-preprocessor">.<span class="hljs-type">AuthenticationManagerBuilder</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.config<span class="hljs-preprocessor">.annotation<span class="hljs-preprocessor">.web<span class="hljs-preprocessor">.builders<span class="hljs-preprocessor">.<span class="hljs-type">HttpSecurity</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.config<span class="hljs-preprocessor">.annotation<span class="hljs-preprocessor">.web<span class="hljs-preprocessor">.configuration<span class="hljs-preprocessor">.<span class="hljs-type">WebSecurityConfigurerAdapter</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.core<span class="hljs-preprocessor">.userdetails<span class="hljs-preprocessor">.<span class="hljs-type">UserDetailsService</span><span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.web<span class="hljs-preprocessor">.access<span class="hljs-preprocessor">.intercept<span class="hljs-preprocessor">.<span class="hljs-type">FilterSecurityInterceptor</span><span class="hljs-comment">;
+
+<span class="hljs-comment"><span class="hljs-comment">/**
+ * Created by yangyibo on 17/1/18.
+ */</span>
+
+
+<span class="hljs-meta">@Configuration</span>
+<span class="hljs-meta">@EnableWebSecurity</span>
+public <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">WebSecurityConfig</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WebSecurityConfigurerAdapter</span> </span>{
+
+    <span class="hljs-meta">@Autowired</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-type">MyFilterSecurityInterceptor</span> myFilterSecurityInterceptor<span class="hljs-comment">;
+
+
+
+        <span class="hljs-meta">@Bean</span>
+    <span class="hljs-type">UserDetailsService</span> customUserService(){ <span class="hljs-comment">//注册UserDetailsService 的bean</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-type">CustomUserService</span>()<span class="hljs-comment">;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">protected</span> void configure(<span class="hljs-type">AuthenticationManagerBuilder</span> auth) <span class="hljs-keyword">throws</span> <span class="hljs-type">Exception</span> {
+        auth<span class="hljs-preprocessor">.userDetailsService(customUserService())<span class="hljs-comment">; <span class="hljs-comment">//user Details Service验证</span>
+
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">protected</span> void configure(<span class="hljs-type">HttpSecurity</span> http) <span class="hljs-keyword">throws</span> <span class="hljs-type">Exception</span> {
+        http<span class="hljs-preprocessor">.authorizeRequests()
+                <span class="hljs-preprocessor">.anyRequest()<span class="hljs-preprocessor">.authenticated() <span class="hljs-comment">//任何请求,登录后可以访问</span>
+                <span class="hljs-preprocessor">.and()
+                <span class="hljs-preprocessor">.formLogin()
+                <span class="hljs-preprocessor">.loginPage(<span class="hljs-string"><span class="hljs-string">"/login"</span>)
+                <span class="hljs-preprocessor">.failureUrl(<span class="hljs-string"><span class="hljs-string">"/login?error"</span>)
+                <span class="hljs-preprocessor">.permitAll() <span class="hljs-comment">//登录页面用户任意访问</span>
+                <span class="hljs-preprocessor">.and()
+                <span class="hljs-preprocessor">.logout()<span class="hljs-preprocessor">.permitAll()<span class="hljs-comment">; <span class="hljs-comment">//注销行为任意访问</span>
+        http<span class="hljs-preprocessor">.addFilterBefore(myFilterSecurityInterceptor, <span class="hljs-type">FilterSecurityInterceptor</span><span class="hljs-preprocessor">.<span class="hljs-keyword">class</span>)<span class="hljs-comment">;
+    }
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h2 id="32-修改customuserservice"><a name="t11" target="_blank"></a>3.2 修改CustomUserService</h2>
+<p>修改CustomUserService.java 内容如下：</p>
+<pre name="code" class="prettyprint"><code class="hljs avrasm has-numbering dart">package <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.service<span class="hljs-comment">;
+
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.dao<span class="hljs-preprocessor">.PermissionDao<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.dao<span class="hljs-preprocessor">.UserDao<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.domain<span class="hljs-preprocessor">.Permission<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.domain<span class="hljs-preprocessor">.SysRole<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">com<span class="hljs-preprocessor">.us<span class="hljs-preprocessor">.example<span class="hljs-preprocessor">.domain<span class="hljs-preprocessor">.SysUser<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.beans<span class="hljs-preprocessor">.<span class="hljs-keyword">factory</span><span class="hljs-preprocessor">.annotation<span class="hljs-preprocessor">.Autowired<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.core<span class="hljs-preprocessor">.GrantedAuthority<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.core<span class="hljs-preprocessor">.authority<span class="hljs-preprocessor">.SimpleGrantedAuthority<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.core<span class="hljs-preprocessor">.userdetails<span class="hljs-preprocessor">.User<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.core<span class="hljs-preprocessor">.userdetails<span class="hljs-preprocessor">.UserDetails<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.core<span class="hljs-preprocessor">.userdetails<span class="hljs-preprocessor">.UserDetailsService<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.security<span class="hljs-preprocessor">.core<span class="hljs-preprocessor">.userdetails<span class="hljs-preprocessor">.UsernameNotFoundException<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> org<span class="hljs-preprocessor">.springframework<span class="hljs-preprocessor">.stereotype<span class="hljs-preprocessor">.Service<span class="hljs-comment">;
+
+<span class="hljs-keyword">import</span> java<span class="hljs-preprocessor">.util<span class="hljs-preprocessor">.ArrayList<span class="hljs-comment">;
+<span class="hljs-keyword">import</span> java<span class="hljs-preprocessor">.util<span class="hljs-preprocessor">.<span class="hljs-built_in">List</span><span class="hljs-comment">;
+
+<span class="hljs-comment"><span class="hljs-comment"><span class="markdown">/**
+ * Created by yangyibo on 17/1/18.
+ */</span></span>
+<span class="hljs-meta">@Service</span>
+public <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomUserService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">UserDetailsService</span> </span>{ <span class="hljs-comment">//自定义UserDetailsService 接口</span>
+
+    <span class="hljs-meta">@Autowired</span>
+    UserDao userDao<span class="hljs-comment">;
+    <span class="hljs-meta">@Autowired</span>
+    PermissionDao permissionDao<span class="hljs-comment">;
+
+    public UserDetails loadUserByUsername(<span class="hljs-built_in">String</span> username) {
+        SysUser user = userDao<span class="hljs-preprocessor">.findByUserName(username)<span class="hljs-comment">;
+        <span class="hljs-keyword">if</span> (user != <span class="hljs-keyword">null</span>) {
+            <span class="hljs-built_in">List</span>&lt;Permission&gt; permissions = permissionDao<span class="hljs-preprocessor">.findByAdminUserId(user<span class="hljs-preprocessor">.getId())<span class="hljs-comment">;
+            <span class="hljs-built_in">List</span>&lt;GrantedAuthority&gt; grantedAuthorities = <span class="hljs-keyword">new</span> ArrayList &lt;&gt;()<span class="hljs-comment">;
+            <span class="hljs-keyword">for</span> (Permission permission : permissions) {
+                <span class="hljs-keyword">if</span> (permission != <span class="hljs-keyword">null</span> &amp;&amp; permission<span class="hljs-preprocessor">.getName()!=<span class="hljs-keyword">null</span>) {
+
+                GrantedAuthority grantedAuthority = <span class="hljs-keyword">new</span> SimpleGrantedAuthority(permission<span class="hljs-preprocessor">.getName())<span class="hljs-comment">;
+                <span class="hljs-comment">//</span><span class="hljs-number"><span class="hljs-comment">1：此处将权限信息添加到 GrantedAuthority 对象中，在后面进行全权限验证时会使用GrantedAuthority 对象。</span>
+                grantedAuthorities<span class="hljs-preprocessor">.add(grantedAuthority)<span class="hljs-comment">;
+                }
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> User(user<span class="hljs-preprocessor">.getUsername(), user<span class="hljs-preprocessor">.getPassword(), grantedAuthorities)<span class="hljs-comment">;
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UsernameNotFoundException(<span class="hljs-string"><span class="hljs-string">"admin: "</span> + username + <span class="hljs-string"><span class="hljs-string">" do not exist!"</span>)<span class="hljs-comment">;
+        }
+    }
+
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h2 id="33-新增myaccessdecisionmanager"><a name="t12" target="_blank"></a>3.3 新增MyAccessDecisionManager</h2>
+<p>在com.us.example.service 包下新增&nbsp;<br>MyAccessDecisionManager.java 文件</p>
+<pre name="code" class="prettyprint"><code class="hljs java has-numbering"><span class="hljs-keyword"><span class="hljs-keyword">package</span> com.us.example.service;
+
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.AccessDecisionManager;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.AccessDeniedException;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.ConfigAttribute;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.authentication.InsufficientAuthenticationException;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.core.Authentication;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.core.GrantedAuthority;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.stereotype.Service;
+
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> java.util.Collection;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> java.util.Iterator;
+
+<span class="hljs-javadoc"><span class="hljs-comment">/**
+ * Created by yangyibo on 17/1/19.
+ */</span>
+<span class="hljs-annotation"><span class="hljs-meta">@Service</span>
+<span class="hljs-keyword"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">MyAccessDecisionManager</span> </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">implements</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">AccessDecisionManager</span> </span>{
+
+  <span class="hljs-comment"><span class="hljs-comment">// decide 方法是判定是否拥有权限的决策方法，</span>
+  <span class="hljs-comment"><span class="hljs-comment">//authentication 是释CustomUserService中循环添加到 GrantedAuthority 对象中的权限信息集合.</span>
+  <span class="hljs-comment"><span class="hljs-comment">//object 包含客户端发起的请求的requset信息，可转换为 HttpServletRequest request = ((FilterInvocation) object).getHttpRequest();</span>
+  <span class="hljs-comment"><span class="hljs-comment">//configAttributes 为MyInvocationSecurityMetadataSource的getAttributes(Object object)这个方法返回的结果，此方法是为了判定用户请求的url 是否在权限表中，如果在权限表中，则返回给 decide 方法，用来判定用户是否有此权限。如果不在权限表中则放行。</span>
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">decide</span><span class="hljs-params">(Authentication authentication, Object object, Collection&lt;ConfigAttribute&gt; configAttributes)</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">throws</span> AccessDeniedException, InsufficientAuthenticationException </span>{
+
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span>(<span class="hljs-keyword"><span class="hljs-keyword">null</span>== configAttributes || configAttributes.size() &lt;=<span class="hljs-number"><span class="hljs-number">0</span>) {
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span>;
+        }
+        ConfigAttribute c;
+        String needRole;
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span>(Iterator&lt;ConfigAttribute&gt; iter = configAttributes.iterator(); iter.hasNext(); ) {
+            c = iter.next();
+            needRole = c.getAttribute();
+            <span class="hljs-keyword"><span class="hljs-keyword">for</span>(GrantedAuthority ga : authentication.getAuthorities()) {<span class="hljs-comment"><span class="hljs-comment">//authentication 为在注释1 中循环添加到 GrantedAuthority 对象中的权限信息集合</span>
+                <span class="hljs-keyword"><span class="hljs-keyword">if</span>(needRole.trim().equals(ga.getAuthority())) {
+                    <span class="hljs-keyword"><span class="hljs-keyword">return</span>;
+                }
+            }
+        }
+        <span class="hljs-keyword"><span class="hljs-keyword">throw</span> <span class="hljs-keyword"><span class="hljs-keyword">new</span> AccessDeniedException(<span class="hljs-string"><span class="hljs-string">"no right"</span>);
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">supports</span><span class="hljs-params">(ConfigAttribute attribute)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-keyword"><span class="hljs-keyword">true</span>;
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">supports</span><span class="hljs-params">(Class&lt;?&gt; clazz)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-keyword"><span class="hljs-keyword">true</span>;
+    }
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h2 id="34-新增-myfiltersecurityinterceptor"><a name="t13" target="_blank"></a>3.4 新增 MyFilterSecurityInterceptor</h2>
+<p>在com.us.example.service 包下新增&nbsp;<br>MyFilterSecurityInterceptor.java 文件</p>
+<pre name="code" class="prettyprint"><code class="hljs java has-numbering"><span class="hljs-keyword"><span class="hljs-keyword">package</span> com.us.example.service;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> javax.servlet.Filter;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> javax.servlet.FilterChain;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> javax.servlet.FilterConfig;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> javax.servlet.ServletException;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> javax.servlet.ServletRequest;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> javax.servlet.ServletResponse;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Autowired;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.SecurityMetadataSource;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.intercept.AbstractSecurityInterceptor;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.intercept.InterceptorStatusToken;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.web.FilterInvocation;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.stereotype.Service;
+
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> java.io.IOException;
+
+<span class="hljs-javadoc"><span class="hljs-comment">/**
+ * Created by yangyibo on 17/1/19.
+ */</span>
+<span class="hljs-annotation"><span class="hljs-meta">@Service</span>
+<span class="hljs-keyword"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">MyFilterSecurityInterceptor</span> </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">extends</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">AbstractSecurityInterceptor</span> </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">implements</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">Filter</span> </span>{
+
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Autowired</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> FilterInvocationSecurityMetadataSource securityMetadataSource;
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Autowired</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">setMyAccessDecisionManager</span><span class="hljs-params">(MyAccessDecisionManager myAccessDecisionManager)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">super</span>.setAccessDecisionManager(myAccessDecisionManager);
+    }
+
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">init</span><span class="hljs-params">(FilterConfig filterConfig)</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">throws</span> ServletException </span>{
+
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">doFilter</span><span class="hljs-params">(ServletRequest request, ServletResponse response, FilterChain chain)</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">throws</span> IOException, ServletException </span>{
+
+        FilterInvocation fi = <span class="hljs-keyword"><span class="hljs-keyword">new</span> FilterInvocation(request, response, chain);
+        invoke(fi);
+    }
+
+
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">invoke</span><span class="hljs-params">(FilterInvocation fi)</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">throws</span> IOException, ServletException </span>{
+<span class="hljs-comment"><span class="hljs-comment">//fi里面有一个被拦截的url</span>
+<span class="hljs-comment"><span class="hljs-comment">//里面调用MyInvocationSecurityMetadataSource的getAttributes(Object object)这个方法获取fi对应的所有权限</span>
+<span class="hljs-comment"><span class="hljs-comment">//再调用MyAccessDecisionManager的decide方法来校验用户的权限是否足够</span>
+        InterceptorStatusToken token = <span class="hljs-keyword"><span class="hljs-keyword">super</span>.beforeInvocation(fi);
+        <span class="hljs-keyword"><span class="hljs-keyword">try</span> {
+<span class="hljs-comment"><span class="hljs-comment">//执行下一个拦截器</span>
+            fi.getChain().doFilter(fi.getRequest(), fi.getResponse());
+        } <span class="hljs-keyword"><span class="hljs-keyword">finally</span> {
+            <span class="hljs-keyword"><span class="hljs-keyword">super</span>.afterInvocation(token, <span class="hljs-keyword"><span class="hljs-keyword">null</span>);
+        }
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">destroy</span><span class="hljs-params">()</span> </span>{
+
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">public</span> Class&lt;?&gt; <span class="hljs-title">getSecureObjectClass() {
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> FilterInvocation.class;
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> SecurityMetadataSource </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">obtainSecurityMetadataSource</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-keyword"><span class="hljs-keyword">this</span>.securityMetadataSource;
+    }
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h2 id="35-新增-myinvocationsecuritymetadatasourceservice"><a name="t14" target="_blank"></a>3.5 新增 MyInvocationSecurityMetadataSourceService</h2>
+<p>在com.us.example.service 包下新增MyInvocationSecurityMetadataSourceService.java文件</p>
+<pre name="code" class="prettyprint"><code class="hljs java has-numbering"><span class="hljs-keyword"><span class="hljs-keyword">package</span> com.us.example.service;
+
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> com.us.example.dao.PermissionDao;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> com.us.example.domain.Permission;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Autowired;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.ConfigAttribute;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.access.SecurityConfig;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.web.FilterInvocation;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.stereotype.Service;
+
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> javax.servlet.http.HttpServletRequest;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> java.util.*;
+
+<span class="hljs-javadoc"><span class="hljs-comment">/**
+ * Created by yangyibo on 17/1/19.
+ */</span>
+<span class="hljs-annotation"><span class="hljs-meta">@Service</span>
+<span class="hljs-keyword"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">MyInvocationSecurityMetadataSourceService</span>  </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">implements</span>
+        </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">FilterInvocationSecurityMetadataSource</span> </span>{
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Autowired</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> PermissionDao permissionDao;
+
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span> HashMap&lt;String, Collection&lt;ConfigAttribute&gt;&gt; map =<span class="hljs-keyword"><span class="hljs-keyword">null</span>;
+
+    <span class="hljs-javadoc"><span class="hljs-comment">/**
+     * 加载权限表中所有权限
+     */</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">loadResourceDefine</span><span class="hljs-params">()</span></span>{
+        map = <span class="hljs-keyword"><span class="hljs-keyword">new</span> HashMap&lt;&gt;();
+        Collection&lt;ConfigAttribute&gt; array;
+        ConfigAttribute cfg;
+        List&lt;Permission&gt; permissions = permissionDao.findAll();
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span>(Permission permission : permissions) {
+            array = <span class="hljs-keyword"><span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+            cfg = <span class="hljs-keyword"><span class="hljs-keyword">new</span> SecurityConfig(permission.getName());
+            <span class="hljs-comment"><span class="hljs-comment">//此处只添加了用户的名字，其实还可以添加更多权限的信息，例如请求方法到ConfigAttribute的集合中去。此处添加的信息将会作为MyAccessDecisionManager类的decide的第三个参数。</span>
+            array.add(cfg);
+            <span class="hljs-comment"><span class="hljs-comment">//用权限的getUrl() 作为map的key，用ConfigAttribute的集合作为 value，</span>
+            map.put(permission.getUrl(), array);
+        }
+
+    }
+
+<span class="hljs-comment"><span class="hljs-comment">//此方法是为了判定用户请求的url 是否在权限表中，如果在权限表中，则返回给 decide 方法，用来判定用户是否有此权限。如果不在权限表中则放行。</span>
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> Collection&lt;ConfigAttribute&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">getAttributes</span><span class="hljs-params">(Object object)</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">throws</span> IllegalArgumentException </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span>(map ==<span class="hljs-keyword"><span class="hljs-keyword">null</span>) loadResourceDefine();
+        <span class="hljs-comment"><span class="hljs-comment">//object 中包含用户请求的request 信息</span>
+        HttpServletRequest request = ((FilterInvocation) object).getHttpRequest();
+        AntPathRequestMatcher matcher;
+        String resUrl;
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span>(Iterator&lt;String&gt; iter = map.keySet().iterator(); iter.hasNext(); ) {
+            resUrl = iter.next();
+            matcher = <span class="hljs-keyword"><span class="hljs-keyword">new</span> AntPathRequestMatcher(resUrl);
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span>(matcher.matches(request)) {
+                <span class="hljs-keyword"><span class="hljs-keyword">return</span> map.get(resUrl);
+            }
+        }
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-keyword"><span class="hljs-keyword">null</span>;
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> Collection&lt;ConfigAttribute&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">getAllConfigAttributes</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-keyword"><span class="hljs-keyword">null</span>;
+    }
+
+    <span class="hljs-annotation"><span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">supports</span><span class="hljs-params">(Class&lt;?&gt; clazz)</span> </span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-keyword"><span class="hljs-keyword">true</span>;
+    }
+}
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h1 id="4修改homehtml-文件"><a name="t15" target="_blank"></a>4：修改home.html 文件</h1>
+<p>修改src/resources/templates目录下 的home.html</p>
+<pre name="code" class="prettyprint"><code class="hljs xml has-numbering"><span class="hljs-doctype"><span class="hljs-meta">&lt;!DOCTYPE html&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">html</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">xmlns:th</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"http://www.thymeleaf.org"</span> 
+      </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">xmlns:sec</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"</span>&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">meta</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">content</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"text/html;charset=UTF-8"</span>/&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">title</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">sec:authentication</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"name"</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">title</span>&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">link</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">rel</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"stylesheet"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">th:href</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"@{css/bootstrap.min.css}"</span> /&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">style</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">type</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"text/css"</span>&gt;</span><span class="css"><span class="css">
+</span><span class="hljs-tag"><span class="css"><span class="hljs-selector-tag">body</span> </span><span class="hljs-rules"><span class="css">{
+  </span><span class="hljs-rule"><span class="hljs-attribute"><span class="css"><span class="hljs-attribute">padding-top</span>:</span><span class="hljs-value"><span class="css"> </span><span class="hljs-number"><span class="css"><span class="hljs-number">50px</span>;
+</span><span class="hljs-rule"><span class="css">}
+</span><span class="hljs-class"><span class="css"><span class="hljs-selector-class">.starter-template</span> </span><span class="hljs-rules"><span class="css">{
+  </span><span class="hljs-rule"><span class="hljs-attribute"><span class="css"><span class="hljs-attribute">padding</span>:</span><span class="hljs-value"><span class="css"> </span><span class="hljs-number"><span class="css"><span class="hljs-number">40px</span> </span><span class="hljs-number"><span class="css"><span class="hljs-number">15px</span>;
+  </span><span class="hljs-rule"><span class="hljs-attribute"><span class="css"><span class="hljs-attribute">text-align</span>:</span><span class="hljs-value"><span class="css"> center;
+</span><span class="hljs-rule"><span class="css">}
+</span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">style</span>&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">body</span>&gt;</span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">nav</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"navbar navbar-inverse navbar-fixed-top"</span>&gt;</span>
+      <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"container"</span>&gt;</span>
+        <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"navbar-header"</span>&gt;</span>
+          <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">a</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"navbar-brand"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">href</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"#"</span>&gt;</span>Spring Security演示<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">a</span>&gt;</span>
+        <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span>&gt;</span>
+        <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">id</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"navbar"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"collapse navbar-collapse"</span>&gt;</span>
+          <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">ul</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"nav navbar-nav"</span>&gt;</span>
+           <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">li</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">a</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">th:href</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"@{/}"</span>&gt;</span> 首页 <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">a</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">li</span>&gt;</span>
+              <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">li</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">a</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">th:href</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"@{/admin}"</span>&gt;</span> admin <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">a</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">li</span>&gt;</span>
+          <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">ul</span>&gt;</span>
+        <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span>&gt;</span><span class="hljs-comment"><span class="hljs-comment">&lt;!--/.nav-collapse --&gt;</span>
+      <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">nav</span>&gt;</span>
+
+
+     <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"container"</span>&gt;</span>
+
+      <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"starter-template"</span>&gt;</span>
+        <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">h1</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">th:text</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"${msg.title}"</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">h1</span>&gt;</span>
+
+        <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">p</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"bg-primary"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">th:text</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"${msg.content}"</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">p</span>&gt;</span>
+
+        <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">sec:authorize</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"hasRole('ROLE_HOME')"</span>&gt;</span> <span class="hljs-comment"><span class="hljs-comment">&lt;!-- 用户类型为ROLE_ADMIN 显示 --&gt;</span>
+            <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">p</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"bg-info"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">th:text</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"${msg.etraInfo}"</span>&gt;</span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">p</span>&gt;</span>
+        <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span>&gt;</span>
+          <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">sec:authorize</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"hasRole('ROLE_ADMIN')"</span>&gt;</span> <span class="hljs-comment"><span class="hljs-comment">&lt;!-- 用户类型为ROLE_ADMIN 显示 --&gt;</span>
+              <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">p</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"bg-info"</span>&gt;</span>恭喜您,您有 ROLE_ADMIN 权限 <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">p</span>&gt;</span>
+          <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span>&gt;</span>
+
+          <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">form</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">th:action</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"@{/logout}"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">method</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"post"</span>&gt;</span>
+            <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">input</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">type</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"submit"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">class</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"btn btn-primary"</span> </span><span class="hljs-attribute"><span class="hljs-tag"><span class="hljs-attr">value</span>=</span><span class="hljs-value"><span class="hljs-tag"><span class="hljs-string">"注销"</span>/&gt;</span>
+        <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">form</span>&gt;</span>
+      <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span>&gt;</span>
+
+    <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">div</span>&gt;</span>
+
+
+<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-title"><span class="hljs-tag"><span class="hljs-name">html</span>&gt;</span>
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h1 id="5修改homecontrollerjava-文件"><a name="t16" target="_blank"></a>5：修改HomeController.java 文件</h1>
+<pre name="code" class="prettyprint"><code class="hljs java has-numbering"><span class="hljs-keyword"><span class="hljs-keyword">package</span> com.us.example.controller;
+
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> com.us.example.domain.Msg;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.stereotype.Controller;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.ui.Model;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;
+<span class="hljs-keyword"><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.ResponseBody;
+
+<span class="hljs-javadoc"><span class="hljs-comment">/**
+ * Created by yangyibo on 17/1/18.
+ */</span>
+<span class="hljs-annotation"><span class="hljs-meta">@Controller</span>
+<span class="hljs-keyword"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">HomeController</span> </span>{
+
+    <span class="hljs-annotation"><span class="hljs-meta">@RequestMapping</span>(<span class="hljs-string"><span class="hljs-string">"/"</span>)
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> String </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">index</span><span class="hljs-params">(Model model)</span></span>{
+        Msg msg =  <span class="hljs-keyword"><span class="hljs-keyword">new</span> Msg(<span class="hljs-string"><span class="hljs-string">"测试标题"</span>,<span class="hljs-string"><span class="hljs-string">"测试内容"</span>,<span class="hljs-string"><span class="hljs-string">"欢迎来到HOME页面,您拥有 ROLE_HOME 权限"</span>);
+        model.addAttribute(<span class="hljs-string"><span class="hljs-string">"msg"</span>, msg);
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-string"><span class="hljs-string">"home"</span>;
+    }
+    <span class="hljs-annotation"><span class="hljs-meta">@RequestMapping</span>(<span class="hljs-string"><span class="hljs-string">"/admin"</span>)
+    <span class="hljs-annotation"><span class="hljs-meta">@ResponseBody</span>
+    <span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span> String </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">hello</span><span class="hljs-params">()</span></span>{
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span> <span class="hljs-string"><span class="hljs-string">"hello admin"</span>;
+    }
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h1 id="6测试检验"><a name="t17" target="_blank"></a>6.测试检验</h1>
+<p>启动访问&nbsp;<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>&nbsp;到登录页面</p>
+<pre><code class="hljs">由于数据库的配置 admin 用户拥有 访问 home和admin 页面的权限。 
+abel 用户只有访问 home 的权限
+</code></pre>
+<p>使用admin 登录</p>
+<p><img title="" src="http://img.blog.csdn.net/20170120191102871?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMjM3MzgxNQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="这里写图片描述"></p>
+<p>点击 admin 按钮 会反回结果 “hello admin“</p>
+<p>使用abel 用户登录 点击 点击 admin 按钮 页面会报403</p>
+<p>源码地址：<a href="https://github.com/527515025/springBoot" target="_blank">https://github.com/527515025/springBoot</a></p>
+<p>参考资料：&nbsp;<br><a href="http://www.tuicool.com/articles/jq6fuur#c-23220" target="_blank">http://www.tuicool.com/articles/jq6fuur#c-23220</a>&nbsp;<br><a href="http://blog.csdn.net/u012367513/article/details/38866465" target="_blank">http://blog.csdn.net/u012367513/article/details/38866465</a></p>
+<p>&nbsp;</p>
+<p>http://blog.csdn.net/u012373815/article/details/54633046</p>
+<p>https://github.com/527515025/springBoot</p>
+<p>https://github.com/helloworldtang/springBoot</p>
+<p>&nbsp;</p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="https://www.cnblogs.com/softidea/category/1014618.html" target="_blank">读书笔记</a></div>
+<div id="EntryTag">标签: <a href="https://www.cnblogs.com/softidea/tag/springBoot%20%20%20springSecurity%20%20%20%E6%95%B0%E6%8D%AE%E5%BA%93%20%20%20%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%20%20%20%E7%94%A8%E6%88%B7%20%E8%A7%92%E8%89%B2%20%E6%9D%83/">springBoot   springSecurity   数据库   动态管理   用户 角色 权</a></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(7068149,cb_blogId,1);green_channel_success(this,'谢谢推荐！');">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow('284ab323-2d49-e011-ac81-842b2b196315');" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/softidea/" target="_blank"><img src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/20130730175146.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/softidea/">沧海一滴</a><br>
+            <a href="https://home.cnblogs.com/u/softidea/followees">关注 - 338</a><br>
+            <a href="https://home.cnblogs.com/u/softidea/followers">粉丝 - 567</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow('284ab323-2d49-e011-ac81-842b2b196315');return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(7068149,'Digg')">
+        <span class="diggnum" id="digg_count">3</span>
+    </div>
+    <div class="buryit" onclick="votePost(7068149,'Bury')">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="https://www.cnblogs.com/softidea/p/7062184.html" class="p_n_p_prefix">« </a> 上一篇：<a href="https://www.cnblogs.com/softidea/p/7062184.html" title="发布于2017-06-21 23:17">Thymeleaf 3.0  专题</a><br><a href="https://www.cnblogs.com/softidea/p/7068189.html" class="p_n_p_prefix">» </a> 下一篇：<a href="https://www.cnblogs.com/softidea/p/7068189.html" title="发布于2017-06-23 08:44">关于cas-client单点登录客户端拦截请求和忽略/排除不需要拦截的请求URL的问题（不需要修改任何代码，只需要一个配置）</a><br></div>
+</div>
+
+
+		</div>
+		<div class="postDesc">posted @ <span id="post-date">2017-06-23 08:20</span> <a href="https://www.cnblogs.com/softidea/">沧海一滴</a> 阅读(<span id="post_view_count">60686</span>) 评论(<span id="post_comment_count">10</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=7068149" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(7068149);return false;">收藏</a></div>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=84872,cb_entryId=7068149,cb_blogApp=currentBlogApp,cb_blogUserGuid='284ab323-2d49-e011-ac81-842b2b196315',cb_entryCreatedDate='2017/6/23 8:20:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=false;</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"><div id="comments_pager_top"></div>
+<!--done-->
+<br>
+<div class="feedback_area_title">评论</div>
+<div class="feedbackNoItems"></div>
+	
+
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4084609" class="layer">#1楼</a><a name="4084609" id="comment_anchor_4084609"></a> <span class="comment_date">2018-10-09 14:32</span> | <a id="a_comment_author_4084609" href="https://www.cnblogs.com/lungfish/" target="_blank">苦海行舟</a> <a href="http://msg.cnblogs.com/send/%E8%8B%A6%E6%B5%B7%E8%A1%8C%E8%88%9F" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4084609" class="blog_comment_body">这样做，负载均衡的话会不会有问题呢？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4084609,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4084609,'Bury',this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4085000" class="layer">#2楼</a><a name="4085000" id="comment_anchor_4085000"></a>[<span class="louzhu">楼主</span>] <span class="comment_date">2018-10-09 21:52</span> | <a id="a_comment_author_4085000" href="https://www.cnblogs.com/softidea/" target="_blank">沧海一滴</a> <a href="http://msg.cnblogs.com/send/%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4085000" class="blog_comment_body"><a href="#4084609" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4084609);">@</a>
+苦海行舟<br>会的。这是单机版。如果要水平扩展，有三个方案，<br>（1）如果用户量不大可以使用spring-session<br>（2）在对用户鉴权时使用redis<br>（3）如果用户量大，建议使用jwt来替换session。这个方案的可扩展性最好，但就本例而言，改动也更大</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4085000,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4085000,'Bury',this)">反对(0)</a></div><span id="comment_4085000_avatar" style="display:none;">http://pic.cnblogs.com/face/280044/20130730175146.png</span>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4089075" class="layer">#3楼</a><a name="4089075" id="comment_anchor_4089075"></a> <span class="comment_date">2018-10-14 19:43</span> | <a id="a_comment_author_4089075" href="http://home.cnblogs.com/u/990941/" target="_blank">加一</a> <a href="http://msg.cnblogs.com/send/%E5%8A%A0%E4%B8%80" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4089075" class="blog_comment_body">源码项目 springboot-springsecurity3 有点旧  运行报错,</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4089075,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4089075,'Bury',this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4089519" class="layer">#4楼</a><a name="4089519" id="comment_anchor_4089519"></a>[<span class="louzhu">楼主</span>] <span class="comment_date">2018-10-15 10:09</span> | <a id="a_comment_author_4089519" href="https://www.cnblogs.com/softidea/" target="_blank">沧海一滴</a> <a href="http://msg.cnblogs.com/send/%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4089519" class="blog_comment_body"><a href="#4089075" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4089075);">@</a>
+加一<br>报错信息贴一下，我处理一下</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4089519,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4089519,'Bury',this)">反对(0)</a></div><span id="comment_4089519_avatar" style="display:none;">http://pic.cnblogs.com/face/280044/20130730175146.png</span>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4090662" class="layer">#5楼</a><a name="4090662" id="comment_anchor_4090662"></a> <span class="comment_date">2018-10-16 10:18</span> | <a id="a_comment_author_4090662" href="https://www.cnblogs.com/onetoone/" target="_blank">一滴水VS太平洋</a> <a href="http://msg.cnblogs.com/send/%E4%B8%80%E6%BB%B4%E6%B0%B4VS%E5%A4%AA%E5%B9%B3%E6%B4%8B" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4090662" class="blog_comment_body">请问您的第二种方式：用户和权限用数据库存储，而资源(url)和权限的对应采用硬编码配置，目前这种方式已经实现，并经过验证。连接请给一下，谢谢。</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4090662,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4090662,'Bury',this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4090737" class="layer">#6楼</a><a name="4090737" id="comment_anchor_4090737"></a>[<span class="louzhu">楼主</span>] <span class="comment_date">2018-10-16 11:09</span> | <a id="a_comment_author_4090737" href="https://www.cnblogs.com/softidea/" target="_blank">沧海一滴</a> <a href="http://msg.cnblogs.com/send/%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4090737" class="blog_comment_body"><a href="#4090662" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4090662);">@</a>
+一滴水VS太平洋<br><a href="https://github.com/helloworldtang/sns-todo/blob/master/sns-api/src/main/java/com/tangcheng/zhiban/sns/todo/web/config/FormLoginSecurityConfig.java" target="_blank">https://github.com/helloworldtang/sns-todo/blob/master/sns-api/src/main/java/com/tangcheng/zhiban/sns/todo/web/config/FormLoginSecurityConfig.java</a></div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4090737,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4090737,'Bury',this)">反对(0)</a></div><span id="comment_4090737_avatar" style="display:none;">http://pic.cnblogs.com/face/280044/20130730175146.png</span>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4092735" class="layer">#7楼</a><a name="4092735" id="comment_anchor_4092735"></a> <span class="comment_date">2018-10-18 10:35</span> | <a id="a_comment_author_4092735" href="https://www.cnblogs.com/onetoone/" target="_blank">一滴水VS太平洋</a> <a href="http://msg.cnblogs.com/send/%E4%B8%80%E6%BB%B4%E6%B0%B4VS%E5%A4%AA%E5%B9%B3%E6%B4%8B" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4092735" class="blog_comment_body">求单独回答，user直接对permission 然后一张user_permission的表，这样的权限该如何设置，求详细的表结构。现在在做一个项目，取消了角色这一层，直接user对permission，不知道表结构该如何设计，谢谢您的回答。</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4092735,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4092735,'Bury',this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4093042" class="layer">#8楼</a><a name="4093042" id="comment_anchor_4093042"></a>[<span class="louzhu">楼主</span>] <span class="comment_date">2018-10-18 14:45</span> | <a id="a_comment_author_4093042" href="https://www.cnblogs.com/softidea/" target="_blank">沧海一滴</a> <a href="http://msg.cnblogs.com/send/%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4093042" class="blog_comment_body"><a href="#4092735" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4092735);">@</a>
+一滴水VS太平洋<br>在Spring Security中角色这个概念是必须。但可以在后台管理界面隐藏掉角色的配置，即所有的用户都是一个角色</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4093042,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4093042,'Bury',this)">反对(0)</a></div><span id="comment_4093042_avatar" style="display:none;">http://pic.cnblogs.com/face/280044/20130730175146.png</span>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4225992" class="layer">#9楼</a><a name="4225992" id="comment_anchor_4225992"></a> <span class="comment_date">2019-04-09 10:44</span> | <a id="a_comment_author_4225992" href="http://home.cnblogs.com/u/1641435/" target="_blank">niceshell</a> <a href="http://msg.cnblogs.com/send/niceshell" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4225992" class="blog_comment_body">请问为什么说负载均衡会出问题呢</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4225992,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4225992,'Bury',this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#4226634" class="layer">#10楼</a><a name="4226634" id="comment_anchor_4226634"></a>[<span class="louzhu">楼主</span>]<span id="comment-maxId" style="display:none;">4226634</span><span id="comment-maxDate" style="display:none;">2019/4/9 20:53:13</span> <span class="comment_date">2019-04-09 20:53</span> | <a id="a_comment_author_4226634" href="https://www.cnblogs.com/softidea/" target="_blank">沧海一滴</a> <a href="http://msg.cnblogs.com/send/%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_4226634" class="blog_comment_body"><a href="#4225992" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4225992);">@</a>
+niceshell<br>给个上下文呗</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4226634,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4226634,'Bury',this)">反对(0)</a></div><span id="comment_4226634_avatar" style="display:none;">http://pic.cnblogs.com/face/280044/20130730175146.png</span>
+			</div>
+		</div>
+	<div id="comments_pager_bottom"></div></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="#" onclick="return RefreshPage();">刷新页面</a><a href="#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login('commentform');">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-工控')">【推荐】超50万C++/C#源码: 大型实时仿真组态图形源码</a><br><a href="https://ke.qq.com/adActivity.html?name=xiangxueketang2" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-享学')">【推荐】Java工作两年，一天竟收到33份面试通知</a><br><a href="https://q.cnblogs.com/" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-博问')">【推荐】程序员问答平台，解决您开发中遇到的技术难题</a><br></div>
+<div id="opt_under_post"></div>
+<script async="async" src="springBoot+springSecurity%20%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8A%A8%E6%80%81%E7%AE%A1%E7%90%86%E7%94%A8%E6%88%B7%E3%80%81%E8%A7%92%E8%89%B2%E3%80%81%E6%9D%83%E9%99%90%20-%20%E6%B2%A7%E6%B5%B7%E4%B8%80%E6%BB%B4%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/gpt.js"></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id="cnblogs_c1" class="c_ad_block">
+    <div id="div-gpt-ad-1546353474406-0" style="height:250px; width:300px;" data-google-query-id="CPTRtaycxeICFQoxlgodKlUDFg"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="1" data-load-complete="true" width="300" height="250" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>相关博文：</b><br>·  <a href="https://www.cnblogs.com/dailiang1993/p/7803564.html" target="_blank" onclick="clickRecomItmem(7803564)">springBoot+springSecurity 数据库动态管理用户、角色、权限</a><br>·  <a href="https://www.cnblogs.com/dailiang1993/p/7803550.html" target="_blank" onclick="clickRecomItmem(7803550)">springboot+mybatis＋SpringSecurity 实现用户角色数据库管理</a><br>·  <a href="https://www.cnblogs.com/wenbronk/p/7379865.html" target="_blank" onclick="clickRecomItmem(7379865)">springboot-28-security(一)用户角色控制</a><br>·  <a href="https://www.cnblogs.com/hhhshct/p/9726378.html" target="_blank" onclick="clickRecomItmem(9726378)">springboot整合security实现基于url的权限控制</a><br>·  <a href="https://www.cnblogs.com/wenbronk/p/7381252.html" target="_blank" onclick="clickRecomItmem(7381252)">springboot-29-security(二)用户角色权限控制</a><br></div></div>
+<div id="cnblogs_c2" class="c_ad_block">
+    <div id="div-gpt-ad-1539008685004-0" style="height:60px; width:468px;" data-google-query-id="CPXRtaycxeICFQoxlgodKlUDFg"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="2" data-load-complete="true" width="468" height="60" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_kb"><div class="itnews c_ad_block"><b>最新新闻</b>：<br> ·  <a href="https://news.cnblogs.com/n/626196/" target="_blank">天文学家发现数十颗“被驱逐出家园”的恒星</a><br> ·  <a href="https://news.cnblogs.com/n/626195/" target="_blank">互联网“铁王座”争夺史</a><br> ·  <a href="https://news.cnblogs.com/n/626194/" target="_blank">印度开始遴选宇航员</a><br> ·  <a href="https://news.cnblogs.com/n/626193/" target="_blank">科学家发现5000万年前的鱼群化石包括了259条小鱼</a><br> ·  <a href="https://news.cnblogs.com/n/626192/" target="_blank">华为5G英国首秀！BBC“措手不及”</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"><b>历史上的今天:</b><br>2016-06-23 <a href="https://www.cnblogs.com/softidea/p/5609233.html">基于 JVMTI 实现 Java 线程的监控（转）</a><br>2015-06-23 <a href="https://www.cnblogs.com/softidea/p/4596462.html">HSQLDB相关信息及用法汇总</a><br>2013-06-23 <a href="https://www.cnblogs.com/softidea/p/3151712.html">spring 下载地址及相关概念解析</a><br></div>
+<script type="text/javascript">
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"><div id="sidebar_search" class="mySearch">
+
+
+<h3 class="catListTitle">站内搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="站内搜索" id="btnZzk" class="btn_my_zzk"></div>
+</div>
+
+
+</div><div id="profile_block">昵称：<a href="https://home.cnblogs.com/u/softidea/">沧海一滴</a><br>园龄：<a href="https://home.cnblogs.com/u/softidea/" title="入园时间：2011-03-08">8年2个月</a><br>粉丝：<a href="https://home.cnblogs.com/u/softidea/followers/">567</a><br>关注：<a href="https://home.cnblogs.com/u/softidea/followees/">338</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow('284ab323-2d49-e011-ac81-842b2b196315')">+加关注</a></div><script>getFollowStatus('284ab323-2d49-e011-ac81-842b2b196315')</script></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="calendar"><div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" title="Calendar" cellspacing="0" cellpadding="0">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/04/01');return false;">&lt;</a></td><td align="center">2019年5月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/06/01');return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" abbr="日" scope="col" align="center">日</th><th class="CalDayHeader" abbr="一" scope="col" align="center">一</th><th class="CalDayHeader" abbr="二" scope="col" align="center">二</th><th class="CalDayHeader" abbr="三" scope="col" align="center">三</th><th class="CalDayHeader" abbr="四" scope="col" align="center">四</th><th class="CalDayHeader" abbr="五" scope="col" align="center">五</th><th class="CalDayHeader" abbr="六" scope="col" align="center">六</th></tr><tr><td class="CalOtherMonthDay" align="center">28</td><td class="CalOtherMonthDay" align="center">29</td><td class="CalOtherMonthDay" align="center">30</td><td align="center">1</td><td align="center">2</td><td align="center">3</td><td class="CalWeekendDay" align="center">4</td></tr><tr><td class="CalWeekendDay" align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/05.html"><u>5</u></a></td><td align="center">6</td><td align="center">7</td><td align="center">8</td><td align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/09.html"><u>9</u></a></td><td align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/10.html"><u>10</u></a></td><td class="CalWeekendDay" align="center">11</td></tr><tr><td class="CalWeekendDay" align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/12.html"><u>12</u></a></td><td align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/13.html"><u>13</u></a></td><td align="center">14</td><td align="center">15</td><td align="center">16</td><td align="center">17</td><td class="CalWeekendDay" align="center">18</td></tr><tr><td class="CalWeekendDay" align="center">19</td><td align="center">20</td><td align="center">21</td><td align="center">22</td><td align="center">23</td><td align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/24.html"><u>24</u></a></td><td class="CalWeekendDay" align="center">25</td></tr><tr><td class="CalWeekendDay" align="center">26</td><td align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/27.html"><u>27</u></a></td><td align="center"><a href="https://www.cnblogs.com/softidea/archive/2019/05/28.html"><u>28</u></a></td><td align="center">29</td><td align="center">30</td><td class="CalTodayDay" align="center">31</td><td class="CalOtherMonthDay" align="center">1</td></tr><tr><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td><td class="CalOtherMonthDay" align="center">7</td><td class="CalOtherMonthDay" align="center">8</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script></div>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block"></div><div id="sidebar_toptags" class="sidebar-block">
+<div class="catListTag">
+<h3 class="catListTitle">我的标签</h3>
+<ul>
+<li><a href="https://www.cnblogs.com/softidea/tag/lua/">lua</a>(15)</li><li><a href="https://www.cnblogs.com/softidea/tag/git/">git</a>(13)</li><li><a href="https://www.cnblogs.com/softidea/tag/Mysql/">Mysql</a>(12)</li><li><a href="https://www.cnblogs.com/softidea/tag/maven/">maven</a>(10)</li><li><a href="https://www.cnblogs.com/softidea/tag/Mybatis/">Mybatis</a>(9)</li><li><a href="https://www.cnblogs.com/softidea/tag/spring/">spring</a>(8)</li><li><a href="https://www.cnblogs.com/softidea/tag/groovy/">groovy</a>(7)</li><li><a href="https://www.cnblogs.com/softidea/tag/elasticsearch/">elasticsearch</a>(6)</li><li><a href="https://www.cnblogs.com/softidea/tag/jvm/">jvm</a>(6)</li><li><a href="https://www.cnblogs.com/softidea/tag/Oracle/">Oracle</a>(6)</li><li><a href="https://www.cnblogs.com/softidea/tag/">更多</a></li>
+</ul>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock"><ul><li><a href="https://www.cnblogs.com/softidea/p/5977860.html">1. mysql联合索引(113561)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5991897.html">2. Spring Boot中集成Spring Security  专题(102527)</a></li><li><a href="https://www.cnblogs.com/softidea/p/6135097.html">3. MySQL中的表中增加删除字段(101935)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5765624.html">4. 关于MySql链接url参数的设置  专题(94508)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5745369.html">5. 四种常见的 POST 提交数据方式  专题(88654)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="https://www.cnblogs.com/softidea/p/5728843.html">1. webapi文档描述-swagger(16)</a></li><li><a href="https://www.cnblogs.com/softidea/p/6743108.html">2. 如何发布jar包到maven中央仓库(13)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5789407.html">3. 后台管理UI的选择(12)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5884772.html">4. restful风格，restcontroller与controller(12)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5824240.html">5. 解密随机数生成器（二）——从java源码看线性同余算法(11)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div id="TopDiggPostsBlock"><ul><li><a href="https://www.cnblogs.com/softidea/p/5962612.html">1. Spring事务传播机制(9)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5977860.html">2. mysql联合索引(7)</a></li><li><a href="https://www.cnblogs.com/softidea/p/6216722.html">3. hibernate中@Entity和@Table的区别(7)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5986339.html">4. Etag &amp; If-None-Match  专题(7)</a></li><li><a href="https://www.cnblogs.com/softidea/p/5884772.html">5. restful风格，restcontroller与controller(6)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright ©2019 沧海一滴
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+
+
+</body></html>
