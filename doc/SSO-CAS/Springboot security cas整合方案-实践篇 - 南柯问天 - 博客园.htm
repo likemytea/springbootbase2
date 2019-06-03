@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>Springboot security cas整合方案-实践篇 - 南柯问天 - 博客园</title>
+    <meta property="og:description" content="承接前文 'Springboot security cas整合方案 原理篇' ，请在理解原理的情况下再查看实践篇 maven环境 cas基础配置 包含配置文件以及对应的VO类 1. 2. 对应的VO类">
+    <link type="text/css" rel="stylesheet" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-BlackLowKey.css">
+<link type="text/css" rel="stylesheet" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/334915.css">
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-BlackLowKey-mobile.css">
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/question-sky/rss">
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/question-sky/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/question-sky/wlwmanifest.xml">
+    <script src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/amp4ads-host-v0.js"></script><script src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_rendering_2019052302.js"></script><script async="" src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/analytics.js"></script><script src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/jquery-2.js"></script>
+    <script>var currentBlogId=334915;var currentBlogApp='question-sky',cb_enable_mathjax=false;var isLogined=false;</script>
+    <script src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.js" type="text/javascript"></script>
+<link rel="preload" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js" as="script"><script type="text/javascript" src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js"></script><script src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_2019052302.js" async=""></script></head>
+<body>
+<a name="top"></a>
+
+<!--PageBeginHtml Block Begin-->
+<link type="text/css" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/cuscommon.css" rel="stylesheet">
+<link type="text/css" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/updown.css" rel="stylesheet">
+<link type="text/css" href="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/iconfont.css" rel="stylesheet">
+<!--PageBeginHtml Block End-->
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="https://www.cnblogs.com/question-sky/"><img id="blogLogo" src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/logo.gif" alt="返回主页"></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/question-sky/">南柯问天</a></h1>
+<h2>执笔问天、执着问道、执意生活</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/question-sky/">首页</a></li>
+<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9">联系</a></li>
+<li><a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/question-sky/rss">订阅</a>
+<!--<a id="blog_nav_rss_image" class="aHeaderXML" href="https://www.cnblogs.com/question-sky/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>--></li>
+<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		<div class="blogStats">
+			
+			<div id="blog_stats">
+<span id="stats_post_count">随笔 - 110&nbsp; </span>
+<span id="stats_article_count">文章 - 0&nbsp; </span>
+<span id="stats-comment_count">评论 - 52</span>
+</div>
+			
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		
+        <div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class="post">
+		<h1 class="postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/question-sky/p/7068511.html">Springboot security cas整合方案-实践篇</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><blockquote>
+<p>承接前文<a href="http://www.cnblogs.com/question-sky/p/7061522.html" style="color: rgb(0, 130, 0); padding: 5px;">Springboot security cas整合方案-原理篇</a>，请在理解原理的情况下再查看实践篇</p>
+</blockquote>
+<h3 id="maven环境">maven环境</h3>
+<pre class="xml"><code class="hljs">        <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span>
+        <span class="hljs-comment">&lt;!-- 添加spring security cas支持 --&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.security<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-security-cas<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></code></pre>
+<h3 id="cas基础配置">cas基础配置</h3>
+<p>包含配置文件以及对应的VO类</p>
+<ol>
+<li><code>src/main/resources/application-cas.yml</code></li>
+</ol>
+<pre class="xml"><code class="hljs">    cas:
+     server:
+       host:
+        url: http://192.168.1.101/cas #cas服务地址
+        login_url: /login #登录地址
+        logout_url: /logout #注销地址
+
+    app:
+     server:
+      host:
+        url: http://localhost:8080/web-cas #本应用访问地址
+     login:
+        url: /login/cas #本应用登录地址
+     logout:
+        url: /logout #本应用退出地址</code></pre>
+<ol>
+<li>对应的VO类，应用<code>@Component</code>注解加载</li>
+</ol>
+<pre class="java"><code class="hljs">    <span class="hljs-meta">@Component</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AcmCasProperties</span> </span>{
+
+    <span class="hljs-meta">@Value</span>(<span class="hljs-string">"${cas.server.host.url}"</span>)
+    <span class="hljs-keyword">private</span> String casServerPrefix;
+
+    <span class="hljs-meta">@Value</span>(<span class="hljs-string">"${cas.server.host.login_url}"</span>)
+    <span class="hljs-keyword">private</span> String casServerLoginUrl;
+
+    <span class="hljs-meta">@Value</span>(<span class="hljs-string">"${cas.server.host.logout_url}"</span>)
+    <span class="hljs-keyword">private</span> String casServerLogoutUrl;
+
+    <span class="hljs-meta">@Value</span>(<span class="hljs-string">"${app.server.host.url}"</span>)
+    <span class="hljs-keyword">private</span> String appServicePrefix;
+
+    <span class="hljs-meta">@Value</span>(<span class="hljs-string">"${app.login.url}"</span>)
+    <span class="hljs-keyword">private</span> String appServiceLoginUrl;
+
+    <span class="hljs-meta">@Value</span>(<span class="hljs-string">"${app.logout.url}"</span>)
+    <span class="hljs-keyword">private</span> String appServiceLogoutUrl;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getCasServerPrefix</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> LocalIpUtil.replaceTrueIpIfLocalhost(casServerPrefix);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setCasServerPrefix</span><span class="hljs-params">(String casServerPrefix)</span> </span>{
+        <span class="hljs-keyword">this</span>.casServerPrefix = casServerPrefix;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getCasServerLoginUrl</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> casServerLoginUrl;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setCasServerLoginUrl</span><span class="hljs-params">(String casServerLoginUrl)</span> </span>{
+        <span class="hljs-keyword">this</span>.casServerLoginUrl = casServerLoginUrl;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getCasServerLogoutUrl</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> casServerLogoutUrl;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setCasServerLogoutUrl</span><span class="hljs-params">(String casServerLogoutUrl)</span> </span>{
+        <span class="hljs-keyword">this</span>.casServerLogoutUrl = casServerLogoutUrl;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getAppServicePrefix</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> LocalIpUtil.replaceTrueIpIfLocalhost(appServicePrefix);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setAppServicePrefix</span><span class="hljs-params">(String appServicePrefix)</span> </span>{
+        <span class="hljs-keyword">this</span>.appServicePrefix = appServicePrefix;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getAppServiceLoginUrl</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> appServiceLoginUrl;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setAppServiceLoginUrl</span><span class="hljs-params">(String appServiceLoginUrl)</span> </span>{
+        <span class="hljs-keyword">this</span>.appServiceLoginUrl = appServiceLoginUrl;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getAppServiceLogoutUrl</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> appServiceLogoutUrl;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setAppServiceLogoutUrl</span><span class="hljs-params">(String appServiceLogoutUrl)</span> </span>{
+        <span class="hljs-keyword">this</span>.appServiceLogoutUrl = appServiceLogoutUrl;
+    }
+
+    }</code></pre>
+<ol>
+<li>其中用到了LocalIpUtil工具类，主要是替换<code>localhost</code>或者<code>域名</code>为真实的ip</li>
+</ol>
+<pre class="java"><code class="hljs">    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LocalIpUtil</span>
+    </span>{
+      <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Logger logger = LoggerFactory.getLogger(LocalIpUtil.class);
+      <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String WINDOWS = <span class="hljs-string">"WINDOWS"</span>;
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span>
+      </span>{
+        String url = <span class="hljs-string">"http://127.0.0.1:8080/client1"</span>;
+
+        System.out.println(replaceTrueIpIfLocalhost(url));
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">replaceTrueIpIfLocalhost</span><span class="hljs-params">(String url)</span> </span>{
+        String localIp = getLocalIp();
+
+        <span class="hljs-keyword">if</span> ((url.contains(<span class="hljs-string">"localhost"</span>)) || (url.contains(<span class="hljs-string">"127.0.0.1"</span>))) {
+          url = url.replaceAll(<span class="hljs-string">"localhost"</span>, localIp).replaceAll(<span class="hljs-string">"127.0.0.1"</span>, localIp);
+        }
+        <span class="hljs-keyword">return</span> url;
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">getLocalIp</span><span class="hljs-params">()</span>
+      </span>{
+        String os = System.getProperty(<span class="hljs-string">"os.name"</span>).toUpperCase();
+        String address = <span class="hljs-string">""</span>;
+        <span class="hljs-keyword">if</span> (os.contains(<span class="hljs-string">"WINDOWS"</span>))
+          <span class="hljs-keyword">try</span> {
+            address = InetAddress.getLocalHost().getHostAddress();
+          } <span class="hljs-keyword">catch</span> (UnknownHostException e) {
+            logger.error(<span class="hljs-string">"windows获取本地IP出错"</span>, e);
+          }
+        <span class="hljs-keyword">else</span> {
+          address = getLinuxIP();
+        }
+        <span class="hljs-keyword">return</span> address;
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">getLinuxIP</span><span class="hljs-params">()</span>
+      </span>{
+        String address = <span class="hljs-string">""</span>;
+        <span class="hljs-keyword">try</span>
+        {
+          Enumeration allNetInterfaces = NetworkInterface.getNetworkInterfaces();
+          InetAddress ip = <span class="hljs-keyword">null</span>;
+          <span class="hljs-keyword">while</span> (allNetInterfaces.hasMoreElements()) {
+            NetworkInterface netInterface = (NetworkInterface)allNetInterfaces.nextElement();
+            <span class="hljs-keyword">if</span> ((netInterface.isUp()) &amp;&amp; (!netInterface.isLoopback()) &amp;&amp; (!netInterface.isVirtual()))
+            {
+              Enumeration addresses = netInterface.getInetAddresses();
+              <span class="hljs-keyword">while</span> (addresses.hasMoreElements()) {
+                ip = (InetAddress)addresses.nextElement();
+                <span class="hljs-keyword">if</span> ((!ip.isLoopbackAddress()) &amp;&amp; 
+                  (ip != <span class="hljs-keyword">null</span>) &amp;&amp; ((ip <span class="hljs-keyword">instanceof</span> Inet4Address)))
+                  address = ip.getHostAddress();
+              }
+            }
+          }
+        } <span class="hljs-keyword">catch</span> (SocketException e) {
+          logger.error(<span class="hljs-string">"linux获取本地IP出错"</span>, e);
+        }
+        <span class="hljs-keyword">return</span> address;
+  }</code></pre>
+<h3 id="springboot-应用cas配置">Springboot 应用cas配置</h3>
+<p><code>src/main/resources/application.yml</code>应用<code>application-cas.yml</code></p>
+<pre class="xml"><code class="hljs">    spring:
+      profiles:
+        active: cas</code></pre>
+<h3 id="springboot-配置cas过滤链">Springboot 配置cas过滤链</h3>
+<p>这里采用<code>@Configuration</code>和<code>@Bean</code>注解来完成，包括<strong>LogoutFilter</strong>、<strong>SingleSignOutFilter</strong>、<strong>ticket校验器</strong>、<strong>service配置对象</strong>、<strong>cas凭证校验器Provider</strong>、<strong>CasAuthenticationEntryPoint-cas认证入口</strong></p>
+<pre class="java"><code class="hljs"><span class="hljs-meta">@Configuration</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AcmCasConfiguration</span> </span>{
+
+    <span class="hljs-meta">@Resource</span>
+    <span class="hljs-keyword">private</span> AcmCasProperties acmCasProperties;
+
+    <span class="hljs-comment">/**
+     * 设置客户端service的属性
+     * &lt;p&gt;
+     * 主要设置请求cas服务端后的回调路径,一般为主页地址，不可为登录地址
+     * 
+     * &lt;/p&gt;
+     * 
+     * <span class="hljs-doctag">@return</span>
+     */</span>
+    <span class="hljs-meta">@Bean</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> ServiceProperties <span class="hljs-title">serviceProperties</span><span class="hljs-params">()</span> </span>{
+        ServiceProperties serviceProperties = <span class="hljs-keyword">new</span> ServiceProperties();
+        <span class="hljs-comment">// 设置回调的service路径，此为主页路径</span>
+        serviceProperties.setService(acmCasProperties.getAppServicePrefix() + <span class="hljs-string">"/index.html"</span>);
+        <span class="hljs-comment">// 对所有的未拥有ticket的访问均需要验证</span>
+        serviceProperties.setAuthenticateAllArtifacts(<span class="hljs-keyword">true</span>);
+
+        <span class="hljs-keyword">return</span> serviceProperties;
+    }
+
+    <span class="hljs-comment">/**
+     * 配置ticket校验器
+     * 
+     * <span class="hljs-doctag">@return</span>
+     */</span>
+    <span class="hljs-meta">@Bean</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Cas20ServiceTicketValidator <span class="hljs-title">cas20ServiceTicketValidator</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// 配置上服务端的校验ticket地址</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Cas20ServiceTicketValidator(acmCasProperties.getCasServerPrefix());
+    }
+
+    <span class="hljs-comment">/**
+     * 单点注销，接受cas服务端发出的注销session请求
+     * 
+     * <span class="hljs-doctag">@see</span> SingleLogout(SLO) Front or Back Channel
+     * 
+     * <span class="hljs-doctag">@return</span>
+     */</span>
+    <span class="hljs-meta">@Bean</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> SingleSignOutFilter <span class="hljs-title">singleSignOutFilter</span><span class="hljs-params">()</span> </span>{
+        SingleSignOutFilter outFilter = <span class="hljs-keyword">new</span> SingleSignOutFilter();
+        <span class="hljs-comment">// 设置cas服务端路径前缀，应用于front channel的注销请求</span>
+        outFilter.setCasServerUrlPrefix(acmCasProperties.getCasServerPrefix());
+        outFilter.setIgnoreInitConfiguration(<span class="hljs-keyword">true</span>);
+
+        <span class="hljs-keyword">return</span> outFilter;
+    }
+
+    <span class="hljs-comment">/**
+     * 单点请求cas客户端退出Filter类
+     * 
+     * 请求/logout，转发至cas服务端进行注销
+     */</span>
+    <span class="hljs-meta">@Bean</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> LogoutFilter <span class="hljs-title">logoutFilter</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// 设置回调地址，以免注销后页面不再跳转</span>
+        StringBuilder logoutRedirectPath = <span class="hljs-keyword">new</span> StringBuilder();
+        logoutRedirectPath.append(acmCasProperties.getCasServerPrefix())
+                .append(acmCasProperties.getCasServerLogoutUrl()).append(<span class="hljs-string">"?service="</span>)
+                .append(acmCasProperties.getAppServicePrefix());
+
+        LogoutFilter logoutFilter = <span class="hljs-keyword">new</span> LogoutFilter(logoutRedirectPath.toString(), <span class="hljs-keyword">new</span> SecurityContextLogoutHandler());
+
+        logoutFilter.setFilterProcessesUrl(acmCasProperties.getAppServiceLogoutUrl());
+        <span class="hljs-keyword">return</span> logoutFilter;
+    }
+
+    <span class="hljs-comment">/**
+     * 创建cas校验类
+     * 
+     * &lt;p&gt;
+     * &lt;b&gt;Notes:&lt;/b&gt; TicketValidator、AuthenticationUserDetailService属性必须设置;
+     * serviceProperties属性主要应用于ticketValidator用于去cas服务端检验ticket
+     * &lt;/p&gt;
+     * 
+     * <span class="hljs-doctag">@return</span>
+     */</span>
+    <span class="hljs-meta">@Bean</span>(<span class="hljs-string">"casProvider"</span>)
+    <span class="hljs-function"><span class="hljs-keyword">public</span> CasAuthenticationProvider <span class="hljs-title">casAuthenticationProvider</span><span class="hljs-params">(
+            AuthenticationUserDetailsService&lt;CasAssertionAuthenticationToken&gt; userDetailsService)</span> </span>{
+        CasAuthenticationProvider provider = <span class="hljs-keyword">new</span> CasAuthenticationProvider();
+        provider.setKey(<span class="hljs-string">"casProvider"</span>);
+        provider.setServiceProperties(serviceProperties());
+        provider.setTicketValidator(cas20ServiceTicketValidator());
+        provider.setAuthenticationUserDetailsService(userDetailsService);
+
+        <span class="hljs-keyword">return</span> provider;
+    }
+
+    <span class="hljs-comment">/**
+     * ==============================================================
+     * ==============================================================
+     */</span>
+
+    <span class="hljs-comment">/**
+     * 认证的入口，即跳转至服务端的cas地址
+     * 
+     * &lt;p&gt;
+     * &lt;b&gt;Note:&lt;/b&gt;浏览器访问不可直接填客户端的login请求,若如此则会返回Error页面，无法被此入口拦截
+     * &lt;/p&gt;
+     */</span>
+    <span class="hljs-meta">@Bean</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> CasAuthenticationEntryPoint <span class="hljs-title">casAuthenticationEntryPoint</span><span class="hljs-params">()</span> </span>{
+        CasAuthenticationEntryPoint entryPoint = <span class="hljs-keyword">new</span> CasAuthenticationEntryPoint();
+        entryPoint.setServiceProperties(serviceProperties());
+        entryPoint.setLoginUrl(acmCasProperties.getCasServerPrefix() + acmCasProperties.getCasServerLoginUrl());
+
+        <span class="hljs-keyword">return</span> entryPoint;
+    }
+}</code></pre>
+<blockquote>
+<p>下面对上述的AuthenticationUserDetailsService需要手动配置下，用于权限集合的获取</p>
+</blockquote>
+<h4 id="配置cas获取权限集合的authenticationuserdetailsservice">配置cas获取权限集合的AuthenticationUserDetailsService</h4>
+<pre class="java"><code class="hljs"><span class="hljs-meta">@Component</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AcmCasUserDetailService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">AuthenticationUserDetailsService</span>&lt;<span class="hljs-title">CasAssertionAuthenticationToken</span>&gt; </span>{
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Logger USER_SERVICE_LOGGER = LoggerFactory.getLogger(AcmCasUserDetailService.class);
+
+    <span class="hljs-meta">@Resource</span>
+    <span class="hljs-keyword">private</span> TSysUserDao tsysUserDAO;
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> UserDetails <span class="hljs-title">loadUserDetails</span><span class="hljs-params">(CasAssertionAuthenticationToken token)</span> <span class="hljs-keyword">throws</span> UsernameNotFoundException </span>{
+        USER_SERVICE_LOGGER.info(<span class="hljs-string">"校验成功的登录名为: "</span> + token.getName());
+        <span class="hljs-comment">//此处涉及到数据库操作然后读取权限集合，读者可自行实现</span>
+        SysUser sysUser = tsysUserDAO.findByUserName(token.getName());
+        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == sysUser) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UsernameNotFoundException(<span class="hljs-string">"username isn't exsited in log-cms"</span>);
+        }
+        <span class="hljs-keyword">return</span> sysUser;
+    }
+
+}</code></pre>
+<p>示例中的<code>SysUser</code>实现了<code>UserDetail</code>接口，实现的方法代码如下</p>
+<pre class="java"><code class="hljs">    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
+        List&lt;GrantedAuthority&gt; auths = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+        <span class="hljs-comment">//获取用户对应的角色集合</span>
+        List&lt;SysRole&gt; roles = <span class="hljs-keyword">this</span>.getSysRoles();
+        <span class="hljs-keyword">for</span> (SysRole role : roles) {
+            <span class="hljs-comment">//手动加上ROLE_前缀</span>
+            auths.add(<span class="hljs-keyword">new</span> SimpleGrantedAuthority(SercurityConstants.prefix+role.getRoleName()));
+        }
+        <span class="hljs-keyword">return</span> auths;
+    }</code></pre>
+<h3 id="filtersecurityinterceptor配置">FilterSecurityInterceptor配置</h3>
+<p>需要配置权限的认证过滤链</p>
+<pre class="java"><code class="hljs"><span class="hljs-meta">@Component</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CasFilterSecurityInterceptor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractSecurityInterceptor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Filter</span> </span>{
+    <span class="hljs-meta">@Resource</span>
+    <span class="hljs-keyword">private</span> FilterInvocationSecurityMetadataSource securityMetadataSource;
+
+    <span class="hljs-meta">@Resource</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setMyAccessDecisionManager</span><span class="hljs-params">(AccessDecisionManager myAccessDecisionManager)</span> </span>{
+        <span class="hljs-keyword">super</span>.setAccessDecisionManager(myAccessDecisionManager);
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">(FilterConfig filterConfig)</span> <span class="hljs-keyword">throws</span> ServletException </span>{
+
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doFilter</span><span class="hljs-params">(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)</span> <span class="hljs-keyword">throws</span> IOException, ServletException </span>{
+        FilterInvocation fi = <span class="hljs-keyword">new</span> FilterInvocation(servletRequest, servletResponse, filterChain);
+        invoke(fi);
+    }
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">invoke</span><span class="hljs-params">(FilterInvocation fi)</span> <span class="hljs-keyword">throws</span> IOException, ServletException </span>{
+        <span class="hljs-comment">//fi里面有一个被拦截的url</span>
+        <span class="hljs-comment">//里面调用CasInvocationSecurityMetadataSource的getAttributes(Object object)这个方法获取fi对应的所有权限</span>
+        <span class="hljs-comment">//再调用CasAccessDecisionManager的decide方法来校验用户的权限是否足够</span>
+        InterceptorStatusToken token = <span class="hljs-keyword">super</span>.beforeInvocation(fi);
+        <span class="hljs-keyword">try</span> {
+        <span class="hljs-comment">//执行下一个拦截器</span>
+            fi.getChain().doFilter(fi.getRequest(), fi.getResponse());
+        } <span class="hljs-keyword">finally</span> {
+            <span class="hljs-keyword">super</span>.afterInvocation(token, <span class="hljs-keyword">null</span>);
+        }
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">destroy</span><span class="hljs-params">()</span> </span>{
+
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> Class&lt;?&gt; getSecureObjectClass() {
+        <span class="hljs-keyword">return</span> FilterInvocation.class;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> SecurityMetadataSource <span class="hljs-title">obtainSecurityMetadataSource</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.securityMetadataSource;
+    }
+}</code></pre>
+<blockquote>
+<p>其中还涉及到<strong>SecurityMetadataSource-当前访问路径的权限获取</strong>、<strong>AccessDecisionManager-授权处理器</strong></p>
+</blockquote>
+<h4 id="securitymetadatasource-当前访问路径的权限获取">SecurityMetadataSource-当前访问路径的权限获取</h4>
+<pre class="java"><code class="hljs"><span class="hljs-meta">@Component</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CasInvocationSecurityMetadataSourceService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">FilterInvocationSecurityMetadataSource</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> TSysMenuDao tSysMenuDao;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> HashSet&lt;Pattern&gt; patterns;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Logger logger = LoggerFactory.getLogger(<span class="hljs-keyword">this</span>.getClass());
+    
+    <span class="hljs-meta">@Autowired</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">MyInvocationSecurityMetadataSourceService</span><span class="hljs-params">(TSysMenuDao tSysMenuDao,FilterStatic filterStatic)</span> </span>{
+        <span class="hljs-keyword">this</span>.tSysMenuDao = tSysMenuDao;
+        patterns = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();
+        <span class="hljs-comment">//可通过配置过滤路径，这里就省略不写了，写法与AcmCasProperties一致</span>
+        <span class="hljs-keyword">for</span> (String filter:filterStatic.getStaticFilters()){
+           String regex= filter.replace(<span class="hljs-string">"**"</span>,<span class="hljs-string">"*"</span>).replace(<span class="hljs-string">"*"</span>,<span class="hljs-string">".*"</span>);
+           patterns.add(Pattern.compile(regex));
+        }
+    }
+
+
+
+    <span class="hljs-comment">/**
+     * 查找url对应的角色
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span>  Collection&lt;ConfigAttribute&gt; <span class="hljs-title">loadResourceDefine</span><span class="hljs-params">(String url)</span></span>{
+        Collection&lt;ConfigAttribute&gt; array=<span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+        ConfigAttribute cfg;
+        SysMenu permission = tSysMenuDao.findMeneRoles(url);
+        <span class="hljs-keyword">if</span> (permission !=<span class="hljs-keyword">null</span>) {
+            <span class="hljs-keyword">for</span> (String role :permission.getRoles().split(<span class="hljs-string">","</span>)){
+                cfg = <span class="hljs-keyword">new</span> SecurityConfig(role);
+                <span class="hljs-comment">//此处只添加了用户的名字，其实还可以添加更多权限的信息，例如请求方法到ConfigAttribute的集合中去。此处添加的信息将会作为CasAccessDecisionManager类的decide的第三个参数。</span>
+                array.add(cfg);
+            }
+            <span class="hljs-keyword">return</span> array;
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Collection&lt;ConfigAttribute&gt; <span class="hljs-title">getAttributes</span><span class="hljs-params">(Object object)</span> <span class="hljs-keyword">throws</span> IllegalArgumentException </span>{
+        <span class="hljs-comment">//object 中包含用户请求的request 信息</span>
+        HttpServletRequest request = ((FilterInvocation) object).getHttpRequest();
+        String url = request.getRequestURI();
+        url = url.replaceFirst(request.getContextPath(), <span class="hljs-string">""</span>);
+        logger.info(url);
+        
+        <span class="hljs-comment">//将请求的url与配置文件中不需要访问控制的url进行匹配</span>
+        Iterator&lt;Pattern&gt; patternIterator=patterns.iterator();
+        <span class="hljs-keyword">while</span> (patternIterator.hasNext()){
+            Pattern pattern = patternIterator.next();
+            Matcher matcher=pattern.matcher(url);
+            <span class="hljs-keyword">if</span> (matcher.find())
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+        <span class="hljs-keyword">return</span> loadResourceDefine(url);
+    }
+
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Collection&lt;ConfigAttribute&gt; <span class="hljs-title">getAllConfigAttributes</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">supports</span><span class="hljs-params">(Class&lt;?&gt; aClass)</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    }
+}</code></pre>
+<h4 id="accessdecisionmanager-授权处理器">AccessDecisionManager-授权处理器</h4>
+<p>承接上面的<code>SecurityMetadataSource</code>获取到的权限集合<code>configAttributes</code>，此处对此验证</p>
+<pre class="java"><code class="hljs"><span class="hljs-meta">@Component</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CasAccessDecisionManager</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">AccessDecisionManager</span> </span>{
+
+    <span class="hljs-comment">/**
+     * <span class="hljs-doctag">@param</span> authentication 当前用户权限信息
+     * <span class="hljs-doctag">@param</span> o 请求信息
+     * <span class="hljs-doctag">@param</span> configAttributes 当前访问的url对应的角色
+     */</span>
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">decide</span><span class="hljs-params">(Authentication authentication, Object o, Collection&lt;ConfigAttribute&gt; configAttributes)</span> <span class="hljs-keyword">throws</span> AccessDeniedException, InsufficientAuthenticationException </span>{
+        <span class="hljs-comment">//没有角色要求则返回</span>
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">null</span>== configAttributes || configAttributes.size() &lt;=<span class="hljs-number">0</span>) {
+            <span class="hljs-keyword">return</span>;
+        }
+        <span class="hljs-comment">//比较当前用户角色和当前访问的url对应的角色，是否拥有对应权限</span>
+        ConfigAttribute c;
+        String needRole;
+        <span class="hljs-keyword">for</span>(Iterator&lt;ConfigAttribute&gt; iter = configAttributes.iterator(); iter.hasNext(); ) {
+            c = iter.next();
+            needRole = c.getAttribute();
+            <span class="hljs-keyword">for</span>(GrantedAuthority ga : authentication.getAuthorities()) {<span class="hljs-comment">//authentication 为在注释1 中循环添加到 GrantedAuthority 对象中的权限信息集合</span>
+                <span class="hljs-keyword">if</span>((SercurityConstants.prefix+needRole.trim()).equals(ga.getAuthority())) {
+                    <span class="hljs-keyword">return</span>;
+                }
+            }
+        }
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> AccessDeniedException(<span class="hljs-string">"no right"</span>);
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">supports</span><span class="hljs-params">(ConfigAttribute configAttribute)</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">supports</span><span class="hljs-params">(Class&lt;?&gt; aClass)</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    }
+}</code></pre>
+<h3 id="总入口配置">总入口配置</h3>
+<p>主要是结合spring security进行相应的设置，因为<code>CasAuthenticationFilter</code>需要设置<code>AuthenticationManager</code>对象，所以放在总入口这里配置</p>
+<pre class="java"><code class="hljs"><span class="hljs-meta">@Configuration</span>
+<span class="hljs-meta">@EnableWebSecurity</span>
+<span class="hljs-comment">//如果依赖数据库读取角色等，则需要配置</span>
+<span class="hljs-meta">@AutoConfigureAfter</span>(MyBatisMapperScannerConfig.class)
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">WebSecurityConfig</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WebSecurityConfigurerAdapter</span> </span>{
+    <span class="hljs-comment">/**
+     * 自定义动态权限过滤器
+     */</span>
+    <span class="hljs-meta">@Resource</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> CasFilterSecurityInterceptor myFilterSecurityInterceptor;
+    
+    <span class="hljs-meta">@Resource</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> FilterStatic filterStatic;
+
+    <span class="hljs-comment">/**
+     * 自定义过滤规则及其安全配置
+     */</span>
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configure</span><span class="hljs-params">(HttpSecurity http)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+        <span class="hljs-comment">// HeadersConfigurer</span>
+        http.headers().frameOptions().disable();
+
+        <span class="hljs-comment">// CsrfConfigurer</span>
+        http.csrf().disable();
+
+        <span class="hljs-comment">// ExpressionInterceptUrlRegistry</span>
+        http.authorizeRequests().anyRequest().authenticated().anyRequest().fullyAuthenticated();
+
+        <span class="hljs-comment">// acm cas策略</span>
+        <span class="hljs-comment">// 对logout请求放行</span>
+        http.logout().permitAll();
+        <span class="hljs-comment">// 入口</span>
+        CasAuthenticationEntryPoint entryPoint = getApplicationContext().getBean(CasAuthenticationEntryPoint.class);
+        CasAuthenticationFilter casAuthenticationFilter = getApplicationContext()
+                    .getBean(CasAuthenticationFilter.class);
+        SingleSignOutFilter singleSignOutFilter = getApplicationContext().getBean(SingleSignOutFilter.class);
+        LogoutFilter logoutFilter = getApplicationContext().getBean(LogoutFilter.class);
+            <span class="hljs-comment">/**
+             * 执行顺序为
+             * LogoutFilter--&gt;SingleSignOutFilter--&gt;CasAuthenticationFilter--&gt;
+             * ExceptionTranslationFilter
+             */</span>
+            http.exceptionHandling().authenticationEntryPoint(entryPoint).and().addFilter(casAuthenticationFilter)
+                    .addFilterBefore(logoutFilter, LogoutFilter.class)
+                    .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class);
+        } 
+        <span class="hljs-comment">// addFilter</span>
+    http.addFilterBefore(myFilterSecurityInterceptor, FilterSecurityInterceptor.class);
+    }
+
+    <span class="hljs-meta">@Autowired</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configureGlobal</span><span class="hljs-params">(AuthenticationManagerBuilder auth)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+            <span class="hljs-comment">//放入cas凭证校验器</span>
+            AuthenticationProvider authenticationProvider = (AuthenticationProvider) getApplicationContext()
+                    .getBean(<span class="hljs-string">"casProvider"</span>);
+            auth.authenticationProvider(authenticationProvider);
+
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configure</span><span class="hljs-params">(WebSecurity web)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+        <span class="hljs-comment">// 静态文静过滤</span>
+        String[] filter = filterStatic.getStaticFilters().toArray(<span class="hljs-keyword">new</span> String[<span class="hljs-number">0</span>]);
+        web.ignoring().antMatchers(filter);
+    }
+
+    <span class="hljs-comment">/**
+     * cas filter类
+     * 
+     * 针对/login请求的校验
+     * 
+     * <span class="hljs-doctag">@return</span>
+     */</span>
+    <span class="hljs-meta">@Bean</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> CasAuthenticationFilter <span class="hljs-title">casAuthenticationFilter</span><span class="hljs-params">(ServiceProperties properties,
+            AcmCasProperties acmCasProperties)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+        CasAuthenticationFilter casAuthenticationFilter = <span class="hljs-keyword">new</span> CasAuthenticationFilter();
+        casAuthenticationFilter.setServiceProperties(properties);
+        casAuthenticationFilter.setFilterProcessesUrl(acmCasProperties.getAppServiceLoginUrl());
+        casAuthenticationFilter.setAuthenticationManager(authenticationManager());
+        casAuthenticationFilter
+                .setAuthenticationSuccessHandler(<span class="hljs-keyword">new</span> SimpleUrlAuthenticationSuccessHandler(<span class="hljs-string">"/index.html"</span>));
+        <span class="hljs-keyword">return</span> casAuthenticationFilter;
+    }
+}</code></pre>
+<h3 id="springboot启动类配置">Springboot启动类配置</h3>
+<pre class="java"><code class="hljs"><span class="hljs-meta">@SpringBootApplication</span>
+<span class="hljs-meta">@ComponentScan</span>(basePackages = {<span class="hljs-string">"com.jingsir.springboot.cas"</span>})
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Application</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SpringBootServletInitializer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">EmbeddedServletContainerCustomizer</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+        SpringApplication.run(Application.class);
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">customize</span><span class="hljs-params">(ConfigurableEmbeddedServletContainer configurableEmbeddedServletContainer)</span> </span>{
+        configurableEmbeddedServletContainer.setContextPath(<span class="hljs-string">"/cas-web"</span>);
+    }
+}</code></pre>
+<h3 id="小结">小结</h3>
+<p>当时对<strong>CasAuthenticationEntryPoint</strong>为何配置的<strong>service</strong>回调路径不可为本应用的login登录路径有疑惑，因为会被提前拦截显示"401错误"。分析wireshark的抓包后得知结论如下</p>
+<ul>
+<li>第一次用户GET请求到casServerLoginUrl，返回登录页面</li>
+<li>用户输入账号与密码后POST请求到casServerLoginUrl，其会返回TGC，并不返回ticket(<strong>所以此处不可为本应用的登录路径</strong>)，由于FilterSecurityInterceptor校验仍失败，则仍会由ExceptionTranslationFilter发送GET请求转发至cas登录页面</li>
+<li>第二次用户GET请求到casServerLoginUrl，cas服务根据TGC会返回Ticket</li>
+<li>客户端拿到Ticket后会路由至cas服务上的/cas/serviceValidate上进行Ticket校验，校验通过后则访问真正的路径。且后面每次的请求都会携带Ticket去cas服务上校验，直至Ticket失效后则再次进行登录<br>
+<img src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/1111874-20170623111902898-1025477628.png" alt="cas-login"></li>
+</ul>
+<blockquote>
+<p>本文都是通过实例操作后所写的博客，建议理解原理之后再可参照实例来编写，不当之处欢迎指出。</p>
+</blockquote>
+</div><div id="MySignature">作者：南柯问天 
+出处：http://www.cnblogs.com/question-sky/
+本文版权归本人和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接，否则保留追究法律责任的权利。</div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag">标签: <a href="https://www.cnblogs.com/question-sky/tag/Spring%20Security/">Spring Security</a>, <a href="https://www.cnblogs.com/question-sky/tag/CAS/">CAS</a></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(7068511,cb_blogId,1);green_channel_success(this,'谢谢推荐！');">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow('209bb57b-77f9-e611-845c-ac853d9f53ac');" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/question-sky/" target="_blank"><img src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/20170224164226.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/question-sky/">南柯问天</a><br>
+            <a href="https://home.cnblogs.com/u/question-sky/followees">关注 - 2</a><br>
+            <a href="https://home.cnblogs.com/u/question-sky/followers">粉丝 - 46</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow('209bb57b-77f9-e611-845c-ac853d9f53ac');return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(7068511,'Digg')">
+        <span class="diggnum" id="digg_count">3</span>
+    </div>
+    <div class="buryit" onclick="votePost(7068511,'Bury')">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="https://www.cnblogs.com/question-sky/p/7066117.html" class="p_n_p_prefix">« </a> 上一篇：<a href="https://www.cnblogs.com/question-sky/p/7066117.html" title="发布于2017-06-22 17:18">Springboot security cas源码陶冶-ExceptionTranslationFilter</a><br><a href="https://www.cnblogs.com/question-sky/p/7077788.html" class="p_n_p_prefix">» </a> 下一篇：<a href="https://www.cnblogs.com/question-sky/p/7077788.html" title="发布于2017-06-25 20:22">SpringMVC源码情操陶冶-InterceptorsBeanDefinitionParser拦截器解析器</a><br></div>
+</div>
+
+
+		</div>
+		<div class="postDesc">posted @ <span id="post-date">2017-06-23 10:02</span> <a href="https://www.cnblogs.com/question-sky/">南柯问天</a> 阅读(<span id="post_view_count">5474</span>) 评论(<span id="post_comment_count">2</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=7068511" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(7068511);return false;">收藏</a></div>
+	</div>
+	<script src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/highlight.js"></script><script>markdown_highlight();</script><script type="text/javascript">var allowComments=true,cb_blogId=334915,cb_entryId=7068511,cb_blogApp=currentBlogApp,cb_blogUserGuid='209bb57b-77f9-e611-845c-ac853d9f53ac',cb_entryCreatedDate='2017/6/23 10:02:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=true;</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"><div id="comments_pager_top"></div>
+<br>
+<div class="feedback_area_title">评论列表</div>
+<div class="feedbackNoItems"></div>	
+
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#3946063" class="layer">#1楼</a><a name="3946063" id="comment_anchor_3946063"></a>  <span class="comment_date">2018-04-09 00:50</span> <a id="a_comment_author_3946063" href="http://home.cnblogs.com/u/998726/" target="_blank">长安忆</a> <a href="http://msg.cnblogs.com/send/%E9%95%BF%E5%AE%89%E5%BF%86" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_3946063" class="blog_comment_body">博主你好，我跟着你的博客做了一遍，始终存在问题。能否把这个项目的源码发我一份，我想对比一下。<br>邮箱：1780840347@qq.com</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3946063,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3946063,'Bury',this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="#3947795" class="layer">#2楼</a><a name="3947795" id="comment_anchor_3947795"></a>[<span class="louzhu">楼主</span>]<span id="comment-maxId" style="display:none;">3947795</span><span id="comment-maxDate" style="display:none;">2018/4/10 15:54:25</span>  <span class="comment_date">2018-04-10 15:54</span> <a id="a_comment_author_3947795" href="https://www.cnblogs.com/question-sky/" target="_blank">南柯问天</a> <a href="http://msg.cnblogs.com/send/%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_3947795" class="blog_comment_body"><a href="#3946063" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,3946063);">@</a>
+长安忆<br>此为公司内部代码，如果有什么问题可直接mail到questionsky1211@gmail.com讨论</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3947795,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3947795,'Bury',this)">反对(0)</a></div><span id="comment_3947795_avatar" style="display:none;">http://pic.cnblogs.com/face/1111874/20170224164226.png</span>
+			</div>
+		</div>
+	<div id="comments_pager_bottom"></div></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="#" onclick="return RefreshPage();">刷新页面</a><a href="#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login('commentform');">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-工控')">【推荐】超50万C++/C#源码: 大型实时仿真组态图形源码</a><br><a href="https://q.cnblogs.com/" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-博问')">【推荐】程序员问答平台，解决您开发中遇到的技术难题</a><br></div>
+<div id="opt_under_post"></div>
+<script async="async" src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/gpt.js"></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id="cnblogs_c1" class="c_ad_block">
+    <div id="div-gpt-ad-1546353474406-0" style="height:250px; width:300px;" data-google-query-id="CM_j_uyVzOICFRW_vQodCcgEnw"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="1" data-load-complete="true" width="300" height="250" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>相关博文：</b><br>·  <a href="https://www.cnblogs.com/question-sky/p/7061522.html" target="_blank" onclick="clickRecomItmem(7061522)">Springboot security cas整合方案-原理篇</a><br>·  <a href="https://www.cnblogs.com/question-sky/p/7063568.html" target="_blank" onclick="clickRecomItmem(7063568)">Springboot security cas源码陶冶-CasAuthenticationFilter</a><br>·  <a href="https://www.cnblogs.com/question-sky/p/7066117.html" target="_blank" onclick="clickRecomItmem(7066117)">Springboot security cas源码陶冶-ExceptionTranslationFilter</a><br>·  <a href="https://www.cnblogs.com/question-sky/p/7065808.html" target="_blank" onclick="clickRecomItmem(7065808)">Springboot security cas源码陶冶-FilterSecurityInterceptor</a><br>·  <a href="https://www.cnblogs.com/allalongx/p/8513205.html" target="_blank" onclick="clickRecomItmem(8513205)">Spring Boot教程（二十七）整合Spring Security</a><br></div></div>
+<div id="cnblogs_c2" class="c_ad_block">
+    <div id="div-gpt-ad-1539008685004-0" style="height:60px; width:468px;" data-google-query-id="CPKPgO2VzOICFRW_vQodCcgEnw"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="2" data-load-complete="true" width="468" height="60" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_kb"><div class="itnews c_ad_block"><b>最新新闻</b>：<br> ·  <a href="https://news.cnblogs.com/n/626289/" target="_blank">外媒：违反美商务部禁令与华为保持业务往来的公司会发生什么？</a><br> ·  <a href="https://news.cnblogs.com/n/626288/" target="_blank">核能版“水变油”登上Nature！谷歌7000万押注，MIT参与</a><br> ·  <a href="https://news.cnblogs.com/n/626287/" target="_blank">顺风车没有春天</a><br> ·  <a href="https://news.cnblogs.com/n/626286/" target="_blank">你尽管“动脑”，话交给脑机接口来说</a><br> ·  <a href="https://news.cnblogs.com/n/626285/" target="_blank">亚马逊阿里在穆斯林斋月期间抢占中东电商市场</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"><div>
+<img src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/o_car.jpg" style="width:111px;height:100px;margin-left:40px">
+<ul>
+ <li class="active">
+ <div style="margin-top:5px">
+    <a href="https://github.com/jtjsir/" target="_blank"><img src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/o_github.jpg" style="width:30px;height:30px;margin-left:60px;"></a>
+  <a href="mailto:questionsky1211@gmail.com"><img src="Springboot%20security%20cas%E6%95%B4%E5%90%88%E6%96%B9%E6%A1%88-%E5%AE%9E%E8%B7%B5%E7%AF%87%20-%20%E5%8D%97%E6%9F%AF%E9%97%AE%E5%A4%A9%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/o_gmail.jpg" style="width:30px;height:30px;margin-left:5px;"></a>
+</div>
+</li>
+</ul>
+</div><div id="profile_block">昵称：<a href="https://home.cnblogs.com/u/question-sky/">南柯问天</a><br>园龄：<a href="https://home.cnblogs.com/u/question-sky/" title="入园时间：2017-02-23">2年3个月</a><br>粉丝：<a href="https://home.cnblogs.com/u/question-sky/followers/">46</a><br>关注：<a href="https://home.cnblogs.com/u/question-sky/followees/">2</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow('209bb57b-77f9-e611-845c-ac853d9f53ac')">+加关注</a></div><script>getFollowStatus('209bb57b-77f9-e611-845c-ac853d9f53ac')</script></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" title="Calendar" cellspacing="0" cellpadding="0">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/05/01');return false;">&lt;</a></td><td align="center">2019年6月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/07/01');return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" abbr="日" scope="col" align="center">日</th><th class="CalDayHeader" abbr="一" scope="col" align="center">一</th><th class="CalDayHeader" abbr="二" scope="col" align="center">二</th><th class="CalDayHeader" abbr="三" scope="col" align="center">三</th><th class="CalDayHeader" abbr="四" scope="col" align="center">四</th><th class="CalDayHeader" abbr="五" scope="col" align="center">五</th><th class="CalDayHeader" abbr="六" scope="col" align="center">六</th></tr><tr><td class="CalOtherMonthDay" align="center">26</td><td class="CalOtherMonthDay" align="center">27</td><td class="CalOtherMonthDay" align="center">28</td><td class="CalOtherMonthDay" align="center">29</td><td class="CalOtherMonthDay" align="center">30</td><td class="CalOtherMonthDay" align="center">31</td><td class="CalWeekendDay" align="center">1</td></tr><tr><td class="CalWeekendDay" align="center">2</td><td class="CalTodayDay" align="center">3</td><td align="center">4</td><td align="center">5</td><td align="center">6</td><td align="center">7</td><td class="CalWeekendDay" align="center">8</td></tr><tr><td class="CalWeekendDay" align="center">9</td><td align="center">10</td><td align="center">11</td><td align="center">12</td><td align="center">13</td><td align="center">14</td><td class="CalWeekendDay" align="center">15</td></tr><tr><td class="CalWeekendDay" align="center">16</td><td align="center">17</td><td align="center">18</td><td align="center">19</td><td align="center">20</td><td align="center">21</td><td class="CalWeekendDay" align="center">22</td></tr><tr><td class="CalWeekendDay" align="center">23</td><td align="center">24</td><td align="center">25</td><td align="center">26</td><td align="center">27</td><td align="center">28</td><td class="CalWeekendDay" align="center">29</td></tr><tr><td class="CalWeekendDay" align="center">30</td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block"></div><div id="sidebar_toptags" class="sidebar-block">
+<div class="catListTag">
+<h3 class="catListTitle">我的标签</h3>
+<ul>
+<li><a href="https://www.cnblogs.com/question-sky/tag/Spring/">Spring</a>(42)</li><li><a href="https://www.cnblogs.com/question-sky/tag/SpringMVC/">SpringMVC</a>(18)</li><li><a href="https://www.cnblogs.com/question-sky/tag/springboot/">springboot</a>(16)</li><li><a href="https://www.cnblogs.com/question-sky/tag/Mybatis/">Mybatis</a>(15)</li><li><a href="https://www.cnblogs.com/question-sky/tag/Java/">Java</a>(12)</li><li><a href="https://www.cnblogs.com/question-sky/tag/springcloud/">springcloud</a>(7)</li><li><a href="https://www.cnblogs.com/question-sky/tag/CAS/">CAS</a>(5)</li><li><a href="https://www.cnblogs.com/question-sky/tag/Spring%20Security/">Spring Security</a>(5)</li><li><a href="https://www.cnblogs.com/question-sky/tag/AOP/">AOP</a>(4)</li><li><a href="https://www.cnblogs.com/question-sky/tag/Maven/">Maven</a>(4)</li><li><a href="https://www.cnblogs.com/question-sky/tag/">更多</a></li>
+</ul>
+</div></div><div id="sidebar_categories">
+<div id="sidebar_postarchive" class="catListPostArchive sidebar-block">
+<h3 class="catListTitle">随笔档案</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_0_Link_0" href="https://www.cnblogs.com/question-sky/archive/2019/04.html">2019年4月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_1" href="https://www.cnblogs.com/question-sky/archive/2019/02.html">2019年2月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_2" href="https://www.cnblogs.com/question-sky/archive/2019/01.html">2019年1月 (5)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_3" href="https://www.cnblogs.com/question-sky/archive/2018/12.html">2018年12月 (3)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_4" href="https://www.cnblogs.com/question-sky/archive/2018/11.html">2018年11月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_5" href="https://www.cnblogs.com/question-sky/archive/2018/10.html">2018年10月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_6" href="https://www.cnblogs.com/question-sky/archive/2018/09.html">2018年9月 (5)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_7" href="https://www.cnblogs.com/question-sky/archive/2018/08.html">2018年8月 (5)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_8" href="https://www.cnblogs.com/question-sky/archive/2018/07.html">2018年7月 (3)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_9" href="https://www.cnblogs.com/question-sky/archive/2018/05.html">2018年5月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_10" href="https://www.cnblogs.com/question-sky/archive/2018/04.html">2018年4月 (3)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_11" href="https://www.cnblogs.com/question-sky/archive/2018/03.html">2018年3月 (3)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_12" href="https://www.cnblogs.com/question-sky/archive/2018/02.html">2018年2月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_13" href="https://www.cnblogs.com/question-sky/archive/2017/11.html">2017年11月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_14" href="https://www.cnblogs.com/question-sky/archive/2017/10.html">2017年10月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_15" href="https://www.cnblogs.com/question-sky/archive/2017/09.html">2017年9月 (3)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_16" href="https://www.cnblogs.com/question-sky/archive/2017/08.html">2017年8月 (5)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_17" href="https://www.cnblogs.com/question-sky/archive/2017/07.html">2017年7月 (9)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_18" href="https://www.cnblogs.com/question-sky/archive/2017/06.html">2017年6月 (15)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_19" href="https://www.cnblogs.com/question-sky/archive/2017/05.html">2017年5月 (13)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_20" href="https://www.cnblogs.com/question-sky/archive/2017/04.html">2017年4月 (11)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_21" href="https://www.cnblogs.com/question-sky/archive/2017/03.html">2017年3月 (13)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_22" href="https://www.cnblogs.com/question-sky/archive/2017/02.html">2017年2月 (2)</a> </li>
+
+</ul>
+
+</div>
+
+</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<div class="catListComment">
+<h3 class="catListTitle">最新评论</h3>
+
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/question-sky/p/6959493.html#4251008">1. Re:Spring源码情操陶冶-PathMatchingResourcePatternResolver路径资源匹配溶解器</a></li>
+        <li class="recent_comment_body">摘抄： 最后，需要注意的是，由于ClassLoader.getResources()方法存在的限制，当传入一个空字符串时，它只能从classpath的文件目录下查找，而不会从Jar文件的根目录下查找.......</li>
+        <li class="recent_comment_author">--保大爱过救我妈</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/question-sky/p/10154404.html#4144846">2. Re:浅析HttpSession</a></li>
+        <li class="recent_comment_body">谢谢楼主分享</li>
+        <li class="recent_comment_author">--sparkdev</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/question-sky/p/6850309.html#4124345">3. Re:Spring源码情操陶冶-AbstractApplicationContext#finishBeanFactoryInitialization</a></li>
+        <li class="recent_comment_body">EnvironmentAware/EmbeddedValueResolverAware/ResourceLoaderAware/ApplicationEventPublisherAware/Messa......</li>
+        <li class="recent_comment_author">--南柯问天</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/question-sky/p/9372997.html#4081161">4. Re:springboot情操陶冶-SpringApplication(二)</a></li>
+        <li class="recent_comment_body">有深度~~~~<br>谢谢分享~~~~~</li>
+        <li class="recent_comment_author">--sunlovesea</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/question-sky/p/9636756.html#4066565">5. Re:springboot情操陶冶-web配置(四)</a></li>
+        <li class="recent_comment_body">赞</li>
+        <li class="recent_comment_author">--链圈的链</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock"><ul><li><a href="https://www.cnblogs.com/question-sky/p/6806419.html">1. Spring-shiro源码陶冶-AuthorizingRealm用户认证以及授权(11702)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/7061522.html">2. Springboot security cas整合方案-原理篇(11370)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/9427245.html">3. springboot情操陶冶-@Conditional和@AutoConfigureAfter注解解析(7951)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/7068511.html">4. Springboot security cas整合方案-实践篇(5474)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/7063568.html">5. Springboot security cas源码陶冶-CasAuthenticationFilter(3952)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="https://www.cnblogs.com/question-sky/p/6959493.html">1. Spring源码情操陶冶-PathMatchingResourcePatternResolver路径资源匹配溶解器(10)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/6550546.html">2. Maven pom.xml简单归结(5)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/6706362.html">3. Spring源码情操陶冶-DefaultBeanDefinitionDocumentReader#parseBeanDefinitions(3)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/6523158.html">4. Tomcat部署war应用总结(3)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/6480688.html">5. Oracle客户端工具安装(2)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div id="TopDiggPostsBlock"><ul><li><a href="https://www.cnblogs.com/question-sky/p/7240628.html">1. SpringMVC源码情操陶冶-AbstractHandlerExceptionResolver(5)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/6806419.html">2. Spring-shiro源码陶冶-AuthorizingRealm用户认证以及授权(4)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/7068511.html">3. Springboot security cas整合方案-实践篇(3)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/10154404.html">4. 浅析HttpSession(2)</a></li><li><a href="https://www.cnblogs.com/question-sky/p/8529862.html">5. SpringMVC源码情操陶冶-RequestMappingHandlerAdapter适配器(2)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright ©2019 南柯问天
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+<!--PageEndHtml Block Begin-->
+<script type="text/javascript">
+ $("#cnblogs_post_body a").css("color","#008200").css("padding","5px").css("target","_blank") ;
+// $("a:visited").css("color","#ff1493").css("text-decoration","none") ;
+</script>
+<!--PageEndHtml Block End-->
+
+
+</body></html>
