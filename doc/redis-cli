@@ -1,4 +1,6 @@
 1、连接操作相关的命令
+进入数据库：redis-cli  默认进入的是（0-15）的0，进入库后可以用 select x 切换这到这16个分片
+列出当前库所有key：keys *
 quit：关闭连接（connection）
 auth：简单密码认证
 

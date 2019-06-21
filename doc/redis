@@ -44,3 +44,6 @@ RedisService.java
 RedisServiceImpl.java
 测试类
 DemoshardingjdbcApplicationTests.java
+=====redisson start==========
+https://blog.csdn.net/zilong_zilong/article/details/78252037
+nettysocketio-server工程   com.chenxing.managesystem.TestRedisSon
