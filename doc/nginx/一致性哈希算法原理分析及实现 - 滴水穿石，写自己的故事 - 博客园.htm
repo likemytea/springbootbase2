@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>一致性哈希算法原理分析及实现 - 滴水穿石，写自己的故事 - 博客园</title>
+    <meta property="og:description" content="一致性哈希算法常用于负载均衡中要求资源被均匀的分布到所有节点上，并且对资源的请求能快速路由到对应的节点上。具体的举两个场景的例子： 1、MemCache集群，要求存储各种数据均匀的存到集群中的各个节点">
+    <link type="text/css" rel="stylesheet" href="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-AnotherEon001.css">
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-AnotherEon001-mobile.css">
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/markcd/rss">
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/markcd/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/markcd/wlwmanifest.xml">
+    <script src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/amp4ads-host-v0.js"></script><script src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_rendering_2019061701.js"></script><script async="" src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/analytics.js"></script><script type="text/javascript" src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/encoder.js"></script><script src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/jquery-2.js"></script>
+    <script>var currentBlogId=412265;var currentBlogApp='markcd',cb_enable_mathjax=false;var isLogined=false;</script>
+    <script src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.js" type="text/javascript"></script>
+<link rel="preload" href="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js" as="script"><script type="text/javascript" src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js"></script><script src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_2019061701.js" async=""></script></head>
+<body>
+<a name="top"></a>
+
+
+<div id="wrapper">
+<div id="header">
+
+<div id="top">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/markcd/">滴水穿石，写自己的故事</a></h1>
+<div id="subtitle"></div>
+</div>
+<div id="sub"><div id="blog_stats">
+<div class="BlogStats">随笔 - 14, 文章 - 0, 评论 - 0, 引用 - 0</div>
+</div></div>
+
+
+
+</div>
+<div id="main_container">
+<div id="main_content">
+<div id="content">
+	
+        <div id="post_detail">
+	<div class="post">
+		<h2>
+			<a id="cb_post_title_url" href="https://www.cnblogs.com/markcd/p/8476237.html">一致性哈希算法原理分析及实现</a>
+		</h2>
+		<div class="postbody">
+		<div id="cnblogs_post_body" class="blogpost-body"><p>&nbsp; &nbsp; &nbsp; &nbsp; 一致性哈希算法常用于负载均衡中要求资源被均匀的分布到所有节点上，并且对资源的请求能快速路由到对应的节点上。具体的举两个场景的例子：</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+1、MemCache集群，要求存储各种数据均匀的存到集群中的各个节点上，访问这些数据时能快速的路由到集群中对应存放该数据的节点上；并且要求增删节
+点对整个集群的影响很小，不至于有大的动荡造成整体负载的不稳定；</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 2、RPC过程中服务提供者做N个节点的集群部署，为了能在服务上维护一些业务状态，希望同一种请求每次都落到同一台服务上。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 比如有{N<sub>0</sub>, N<sub>1</sub>, N<sub>2</sub>}三个节点，陆续有多个资源要分配到这三个节点上，如何尽可能均匀的分配到这些节点上？</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 一致性哈希算法的思路为：先构造出一个长度为2<sup>32</sup>整数环，根据N<sub>0-3</sub>的节点名称的hash值（分布为[0,2<sup>32</sup>-1]）放到这个环上。现在要存放资源，根据资源的Key的Hash值（也是分布为[0,2<sup>32</sup>-1]）值H<sub>aaa</sub>，在环上顺时针的找到离H<sub>aaa</sub>最近（第一个大于或等于Haaa）的一个节点，就建立了资源和节点的映射关系。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/1335235-20180227210146353-634482541.png" alt=""></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; <span style="font-size: 12px; color: #99cc00;">以上图片引自http://www.cnblogs.com/xrq730/p/4948707.html。</span></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 为什么要用环存储节点，并用hashKey顺时针寻找对应节点？</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 我们分配节点最简单的办法是取余算法，即有3个节点，资源key=5, 5%3=2，选取N<sub>2</sub>，key=3，3%3=0，选取N<sub>0</sub>。虽然简单，但有个缺点，如果节点数增加或减少，就会有大量的key不命中，造成请求压力转移，可能对系统整体有很大的影响，甚至发生宕机危险。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+而一致性哈希算法增加或减少节点，只会引起少部分key不命中，如下图，增加一个Node4节点，只会将加粗部分的key值从
+Node1(10.0.0.0:91002)移到Node4(10.0.0.0:91003)，对集群影响很小。</p>
+<p><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/1335235-20180227212707491-375499397.png" alt=""></p>
+<p><span style="font-size: 12px; color: #99cc00;">&nbsp; &nbsp; &nbsp; &nbsp; 以上图片引自http://www.cnblogs.com/xrq730/p/4948707.html</span></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; Java实现中用什么表示Hash环好呢？经对比，用TreeMap的时间复杂度是O(logN)，相对效率比较高，因为TreeMap使用了红黑树结构存储实体对象。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+Hash算法的选择上，首先我们考虑简单的String.HashCode()方法，这个算法的缺点是，相似的字符串如
+N1(10.0.0.0:91001)，N2(10.0.0.0:91002)，N3(10.0.0.0:91003)，哈希值也很相近，造成的结果是节
+点在Hash环上分布很紧密，导致大部分Key值落到了N0上，节点资源分布不均。一般我们采用FNV1_32_HASH、KETAMA_HASH等算
+法，KETAMA_HASH是MemCache集群默认的实现方法，这些算法效果要好得多，会使N0，N1，N2的Hash值更均匀的分布在环上。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 我们用<span style="line-height: 1.5;">KETAMA_HASH</span><span style="line-height: 1.5;">算法实现一致性哈希（无虚拟节点方式），如下代码所示：</span><span style="line-height: 1.5;">&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.arithmetic;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.UnsupportedEncodingException;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.security.MessageDigest;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.security.NoSuchAlgorithmException;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Arrays;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.TreeMap;
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">11</span> <span style="color: #008000;"> * Created by markcd on 2018/2/28.
+</span><span style="color: #008080;">12</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">13</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ConsistentHashLoadBalanceNoVirtualNode {
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     <span style="color: #0000ff;">private</span> TreeMap&lt;Long, String&gt; realNodes = <span style="color: #0000ff;">new</span> TreeMap&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">16</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String[] nodes;
+</span><span style="color: #008080;">17</span> 
+<span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> ConsistentHashLoadBalanceNoVirtualNode(String[] nodes){
+</span><span style="color: #008080;">19</span>         <span style="color: #0000ff;">this</span>.nodes =<span style="color: #000000;"> Arrays.copyOf(nodes, nodes.length);
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">        initalization();
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">24</span> <span style="color: #008000;">     * 初始化哈希环
+</span><span style="color: #008080;">25</span> <span style="color: #008000;">     * 循环计算每个node名称的哈希值，将其放入treeMap
+</span><span style="color: #008080;">26</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">27</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> initalization(){
+</span><span style="color: #008080;">28</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String nodeName: nodes) {
+</span><span style="color: #008080;">29</span>             realNodes.put(hash(nodeName, 0<span style="color: #000000;">), nodeName);
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">34</span> <span style="color: #008000;">     * 根据资源key选择返回相应的节点名称
+</span><span style="color: #008080;">35</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+</span><span style="color: #008080;">36</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> 节点名称
+</span><span style="color: #008080;">37</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">38</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String selectNode(String key){
+</span><span style="color: #008080;">39</span>         Long hashOfKey = hash(key, 0<span style="color: #000000;">);
+</span><span style="color: #008080;">40</span>         <span style="color: #0000ff;">if</span> (!<span style="color: #000000;"> realNodes.containsKey(hashOfKey)) {<br>               <span style="color: #0000ff;">//ceilingEntry()的作用是得到比hashOfKey大的第一个Entry
+</span></span><span style="color: #008080;">41</span>             Map.Entry&lt;Long, String&gt; entry =<span style="color: #000000;"> realNodes.ceilingEntry(hashOfKey);
+</span><span style="color: #008080;">42</span>             <span style="color: #0000ff;">if</span> (entry != <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+</span><span style="color: #008080;">43</span>                 <span style="color: #0000ff;">return</span><span style="color: #000000;"> entry.getValue();
+</span><span style="color: #008080;">44</span>             <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">45</span>                 <span style="color: #0000ff;">return</span> nodes[0<span style="color: #000000;">];
+</span><span style="color: #008080;">46</span>         }<span style="color: #0000ff;">else</span>
+<span style="color: #008080;">47</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> realNodes.get(hashOfKey);
+</span><span style="color: #008080;">48</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">49</span> 
+<span style="color: #008080;">50</span>     <span style="color: #0000ff;">private</span> Long hash(String nodeName, <span style="color: #0000ff;">int</span><span style="color: #000000;"> number) {
+</span><span style="color: #008080;">51</span>         <span style="color: #0000ff;">byte</span>[] digest =<span style="color: #000000;"> md5(nodeName);
+</span><span style="color: #008080;">52</span>         <span style="color: #0000ff;">return</span> (((<span style="color: #0000ff;">long</span>) (digest[3 + number * 4] &amp; 0xFF) &lt;&lt; 24<span style="color: #000000;">)
+</span><span style="color: #008080;">53</span>                 | ((<span style="color: #0000ff;">long</span>) (digest[2 + number * 4] &amp; 0xFF) &lt;&lt; 16<span style="color: #000000;">)
+</span><span style="color: #008080;">54</span>                 | ((<span style="color: #0000ff;">long</span>) (digest[1 + number * 4] &amp; 0xFF) &lt;&lt; 8<span style="color: #000000;">)
+</span><span style="color: #008080;">55</span>                 | (digest[number * 4] &amp; 0xFF<span style="color: #000000;">))
+</span><span style="color: #008080;">56</span>                 &amp; 0xFFFFFFFFL<span style="color: #000000;">;
+</span><span style="color: #008080;">57</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">58</span> 
+<span style="color: #008080;">59</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">60</span> <span style="color: #008000;">     * md5加密
+</span><span style="color: #008080;">61</span> <span style="color: #008000;">     *
+</span><span style="color: #008080;">62</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> str
+</span><span style="color: #008080;">63</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@return</span>
+<span style="color: #008080;">64</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">65</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[] md5(String str) {
+</span><span style="color: #008080;">66</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">67</span>             MessageDigest md = MessageDigest.getInstance("MD5"<span style="color: #000000;">);
+</span><span style="color: #008080;">68</span> <span style="color: #000000;">            md.reset();
+</span><span style="color: #008080;">69</span>             md.update(str.getBytes("UTF-8"<span style="color: #000000;">));
+</span><span style="color: #008080;">70</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> md.digest();
+</span><span style="color: #008080;">71</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (NoSuchAlgorithmException e) {
+</span><span style="color: #008080;">72</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">73</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">74</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (UnsupportedEncodingException e) {
+</span><span style="color: #008080;">75</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">76</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">77</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">78</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">79</span> 
+<span style="color: #008080;">80</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> printTreeNode(){
+</span><span style="color: #008080;">81</span>         <span style="color: #0000ff;">if</span> (realNodes != <span style="color: #0000ff;">null</span> &amp;&amp; !<span style="color: #000000;"> realNodes.isEmpty()){
+</span><span style="color: #008080;">82</span>             realNodes.forEach((hashKey, node) -&gt;
+<span style="color: #008080;">83</span> <span style="color: #000000;">                    System.out.println(
+</span><span style="color: #008080;">84</span>                             <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuffer(node)
+</span><span style="color: #008080;">85</span>                             .append(" ==&gt; "<span style="color: #000000;">)
+</span><span style="color: #008080;">86</span> <span style="color: #000000;">                            .append(hashKey)
+</span><span style="color: #008080;">87</span> <span style="color: #000000;">                    )
+</span><span style="color: #008080;">88</span> <span style="color: #000000;">            );
+</span><span style="color: #008080;">89</span>         }<span style="color: #0000ff;">else</span>
+<span style="color: #008080;">90</span>             System.out.println("Cycle is Empty"<span style="color: #000000;">);
+</span><span style="color: #008080;">91</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">92</span> 
+<span style="color: #008080;">93</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args){
+</span><span style="color: #008080;">94</span>         String[] nodes = <span style="color: #0000ff;">new</span> String[]{"192.168.2.1:8080", "192.168.2.2:8080", "192.168.2.3:8080", "192.168.2.4:8080"<span style="color: #000000;">};
+</span><span style="color: #008080;">95</span>         ConsistentHashLoadBalanceNoVirtualNode consistentHash = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConsistentHashLoadBalanceNoVirtualNode(nodes);
+</span><span style="color: #008080;">96</span> <span style="color: #000000;">        consistentHash.printTreeNode();
+</span><span style="color: #008080;">97</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">98</span> }</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; main()方法执行结果如下，可以看到，hash值分布的距离比较开阔。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;192.168.2.3:8080 ==&gt; 1182102228</p>
+<p><span style="line-height: 1.5;">&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span>192.168.2.4:8080 ==&gt; 1563927337</p>
+<p><span style="line-height: 1.5;">&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span>192.168.2.1:8080 ==&gt; 2686712470</p>
+<p><span style="line-height: 1.5;">&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span>192.168.2.2:8080 ==&gt; 3540412423</p>
+<p>&nbsp; &nbsp; &nbsp; 
+&nbsp;&nbsp;KETAMA_HASH解决了hash值分布不均的问题，但还存在一个问题，如下图，在没有Node3节点时，资源相对均匀的分
+布在{Node0,Node1,Node2}上。增加了Node3节点后，Node1到Node3节点中间的所有资源从Node2迁移到了Node3上。
+这样，Node0,Node1存储的资源多，Node2,Node3存储的资源少，资源分布不均匀。</p>
+<p><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/1335235-20180303200455882-625465220.png" alt=""></p>
+<p><span style="color: #99cc00; font-size: 12px; line-height: 1.5;">&nbsp; &nbsp; &nbsp; &nbsp; 以上图片引自http://www.cnblogs.com/xrq730/p/4948707.html</span></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+如何解决这个问题呢？我们引入虚拟节点概念，如将一个真实节点Node0映射成100个虚拟节点分布在Hash环上，与这100个虚拟节点根据
+KETAMA_HASH哈希环匹配的资源都存到真实节点Node0上。{Node0,Node1,Node2}以相同的方式拆分虚拟节点映射到Hash环
+上。当集群增加节点Node3时，在Hash环上增加Node3拆分的100个虚拟节点，这新增的100个虚拟节点更均匀的分布在了哈希环上，可能承担了
+{Node0,Node1,Node2}每个节点的部分资源，资源分布仍然保持均匀。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 每个真实节点应该拆分成多少个虚拟节点？数量要合适才能保证负载分布的均匀，有一个大致的规律，如下图所示，Y轴表示真实节点的数目，X轴表示需拆分的虚拟节点数目：</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/1335235-20180303214723675-958695068.png" alt=""></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 真实节点越少，所需阐发的虚拟节点越多，比如有10个真实节点，每个节点所需拆分的虚拟节点个数可能是100~200个，才能达到真正的负载均衡。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 下面贴出使用了虚拟节点的算法实现：&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #008080;">  1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.arithmetic;
+</span><span style="color: #008080;">  2</span> 
+<span style="color: #008080;">  3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.UnsupportedEncodingException;
+</span><span style="color: #008080;">  4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.security.MessageDigest;
+</span><span style="color: #008080;">  5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.security.NoSuchAlgorithmException;
+</span><span style="color: #008080;">  6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.LinkedList;
+</span><span style="color: #008080;">  7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #008080;">  8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.TreeMap;
+</span><span style="color: #008080;">  9</span> 
+<span style="color: #008080;"> 10</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 11</span> <span style="color: #008000;"> * Created by markcd on 2018/2/28.
+</span><span style="color: #008080;"> 12</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 13</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ConsistentHashLoadBalance {
+</span><span style="color: #008080;"> 14</span> 
+<span style="color: #008080;"> 15</span>     <span style="color: #0000ff;">private</span> TreeMap&lt;Long, String&gt; virtualNodes = <span style="color: #0000ff;">new</span> TreeMap&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 16</span>     <span style="color: #0000ff;">private</span> LinkedList&lt;String&gt;<span style="color: #000000;"> nodes;<br>        <span style="color: #0000ff;">//每个真实节点对应的虚拟节点数
+</span></span><span style="color: #008080;"> 17</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> replicCnt;
+</span><span style="color: #008080;"> 18</span> 
+<span style="color: #008080;"> 19</span>     <span style="color: #0000ff;">public</span> ConsistentHashLoadBalance(LinkedList&lt;String&gt; nodes, <span style="color: #0000ff;">int</span><span style="color: #000000;"> replicCnt){
+</span><span style="color: #008080;"> 20</span>         <span style="color: #0000ff;">this</span>.nodes =<span style="color: #000000;"> nodes;
+</span><span style="color: #008080;"> 21</span>         <span style="color: #0000ff;">this</span>.replicCnt =<span style="color: #000000;"> replicCnt;
+</span><span style="color: #008080;"> 22</span> <span style="color: #000000;">        initalization();
+</span><span style="color: #008080;"> 23</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 24</span> 
+<span style="color: #008080;"> 25</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 26</span> <span style="color: #008000;">     * 初始化哈希环
+</span><span style="color: #008080;"> 27</span> <span style="color: #008000;">     * 循环计算每个node名称的哈希值，将其放入treeMap
+</span><span style="color: #008080;"> 28</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 29</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> initalization(){
+</span><span style="color: #008080;"> 30</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String nodeName: nodes) {
+</span><span style="color: #008080;"> 31</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; replicCnt/4; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 32</span>                 String virtualNodeName =<span style="color: #000000;"> getNodeNameByIndex(nodeName, i);
+</span><span style="color: #008080;"> 33</span>                 <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; 4; j++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 34</span> <span style="color: #000000;">                    virtualNodes.put(hash(virtualNodeName, j), nodeName);
+</span><span style="color: #008080;"> 35</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;"> 36</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 37</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 38</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 39</span> 
+<span style="color: #008080;"> 40</span>     <span style="color: #0000ff;">private</span> String getNodeNameByIndex(String nodeName, <span style="color: #0000ff;">int</span><span style="color: #000000;"> index){
+</span><span style="color: #008080;"> 41</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuffer(nodeName)
+</span><span style="color: #008080;"> 42</span>                 .append("&amp;&amp;"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 43</span> <span style="color: #000000;">                .append(index)
+</span><span style="color: #008080;"> 44</span> <span style="color: #000000;">                .toString();
+</span><span style="color: #008080;"> 45</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 46</span> 
+<span style="color: #008080;"> 47</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 48</span> <span style="color: #008000;">     * 根据资源key选择返回相应的节点名称
+</span><span style="color: #008080;"> 49</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+</span><span style="color: #008080;"> 50</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> 节点名称
+</span><span style="color: #008080;"> 51</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 52</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String selectNode(String key){
+</span><span style="color: #008080;"> 53</span>         Long hashOfKey = hash(key, 0<span style="color: #000000;">);
+</span><span style="color: #008080;"> 54</span>         <span style="color: #0000ff;">if</span> (!<span style="color: #000000;"> virtualNodes.containsKey(hashOfKey)) {
+</span><span style="color: #008080;"> 55</span>             Map.Entry&lt;Long, String&gt; entry =<span style="color: #000000;"> virtualNodes.ceilingEntry(hashOfKey);
+</span><span style="color: #008080;"> 56</span>             <span style="color: #0000ff;">if</span> (entry != <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 57</span>                 <span style="color: #0000ff;">return</span><span style="color: #000000;"> entry.getValue();
+</span><span style="color: #008080;"> 58</span>             <span style="color: #0000ff;">else</span>
+<span style="color: #008080;"> 59</span>                 <span style="color: #0000ff;">return</span><span style="color: #000000;"> nodes.getFirst();
+</span><span style="color: #008080;"> 60</span>         }<span style="color: #0000ff;">else</span>
+<span style="color: #008080;"> 61</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> virtualNodes.get(hashOfKey);
+</span><span style="color: #008080;"> 62</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 63</span> 
+<span style="color: #008080;"> 64</span>     <span style="color: #0000ff;">private</span> Long hash(String nodeName, <span style="color: #0000ff;">int</span><span style="color: #000000;"> number) {
+</span><span style="color: #008080;"> 65</span>         <span style="color: #0000ff;">byte</span>[] digest =<span style="color: #000000;"> md5(nodeName);
+</span><span style="color: #008080;"> 66</span>         <span style="color: #0000ff;">return</span> (((<span style="color: #0000ff;">long</span>) (digest[3 + number * 4] &amp; 0xFF) &lt;&lt; 24<span style="color: #000000;">)
+</span><span style="color: #008080;"> 67</span>                 | ((<span style="color: #0000ff;">long</span>) (digest[2 + number * 4] &amp; 0xFF) &lt;&lt; 16<span style="color: #000000;">)
+</span><span style="color: #008080;"> 68</span>                 | ((<span style="color: #0000ff;">long</span>) (digest[1 + number * 4] &amp; 0xFF) &lt;&lt; 8<span style="color: #000000;">)
+</span><span style="color: #008080;"> 69</span>                 | (digest[number * 4] &amp; 0xFF<span style="color: #000000;">))
+</span><span style="color: #008080;"> 70</span>                 &amp; 0xFFFFFFFFL<span style="color: #000000;">;
+</span><span style="color: #008080;"> 71</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 72</span> 
+<span style="color: #008080;"> 73</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 74</span> <span style="color: #008000;">     * md5加密
+</span><span style="color: #008080;"> 75</span> <span style="color: #008000;">     *
+</span><span style="color: #008080;"> 76</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> str
+</span><span style="color: #008080;"> 77</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@return</span>
+<span style="color: #008080;"> 78</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 79</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[] md5(String str) {
+</span><span style="color: #008080;"> 80</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 81</span>             MessageDigest md = MessageDigest.getInstance("MD5"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 82</span> <span style="color: #000000;">            md.reset();
+</span><span style="color: #008080;"> 83</span>             md.update(str.getBytes("UTF-8"<span style="color: #000000;">));
+</span><span style="color: #008080;"> 84</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> md.digest();
+</span><span style="color: #008080;"> 85</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (NoSuchAlgorithmException e) {
+</span><span style="color: #008080;"> 86</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;"> 87</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 88</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (UnsupportedEncodingException e) {
+</span><span style="color: #008080;"> 89</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;"> 90</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 91</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 92</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 93</span> 
+<span style="color: #008080;"> 94</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> addNode(String node){
+</span><span style="color: #008080;"> 95</span> <span style="color: #000000;">        nodes.add(node);
+</span><span style="color: #008080;"> 96</span>         String virtualNodeName = getNodeNameByIndex(node, 0<span style="color: #000000;">);
+</span><span style="color: #008080;"> 97</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; replicCnt/4; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 98</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; 4; j++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 99</span> <span style="color: #000000;">                virtualNodes.put(hash(virtualNodeName, j), node);
+</span><span style="color: #008080;">100</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">101</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">102</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">103</span> 
+<span style="color: #008080;">104</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> removeNode(String node){
+</span><span style="color: #008080;">105</span> <span style="color: #000000;">        nodes.remove(node);
+</span><span style="color: #008080;">106</span>         String virtualNodeName = getNodeNameByIndex(node, 0<span style="color: #000000;">);
+</span><span style="color: #008080;">107</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; replicCnt/4; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">108</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; 4; j++<span style="color: #000000;">) {
+</span><span style="color: #008080;">109</span> <span style="color: #000000;">                virtualNodes.remove(hash(virtualNodeName, j), node);
+</span><span style="color: #008080;">110</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">111</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">112</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">113</span> 
+<span style="color: #008080;">114</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> printTreeNode(){
+</span><span style="color: #008080;">115</span>         <span style="color: #0000ff;">if</span> (virtualNodes != <span style="color: #0000ff;">null</span> &amp;&amp; !<span style="color: #000000;"> virtualNodes.isEmpty()){
+</span><span style="color: #008080;">116</span>             virtualNodes.forEach((hashKey, node) -&gt;
+<span style="color: #008080;">117</span> <span style="color: #000000;">                    System.out.println(
+</span><span style="color: #008080;">118</span>                             <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuffer(node)
+</span><span style="color: #008080;">119</span>                                     .append(" ==&gt; "<span style="color: #000000;">)
+</span><span style="color: #008080;">120</span> <span style="color: #000000;">                                    .append(hashKey)
+</span><span style="color: #008080;">121</span> <span style="color: #000000;">                    )
+</span><span style="color: #008080;">122</span> <span style="color: #000000;">            );
+</span><span style="color: #008080;">123</span>         }<span style="color: #0000ff;">else</span>
+<span style="color: #008080;">124</span>             System.out.println("Cycle is Empty"<span style="color: #000000;">);
+</span><span style="color: #008080;">125</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">126</span> 
+<span style="color: #008080;">127</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args){
+</span><span style="color: #008080;">128</span>         LinkedList&lt;String&gt; nodes = <span style="color: #0000ff;">new</span> LinkedList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">129</span>         nodes.add("192.168.2.1:8080"<span style="color: #000000;">);
+</span><span style="color: #008080;">130</span>         nodes.add("192.168.2.2:8080"<span style="color: #000000;">);
+</span><span style="color: #008080;">131</span>         nodes.add("192.168.2.3:8080"<span style="color: #000000;">);
+</span><span style="color: #008080;">132</span>         nodes.add("192.168.2.4:8080"<span style="color: #000000;">);
+</span><span style="color: #008080;">133</span>         ConsistentHashLoadBalance consistentHash = <span style="color: #0000ff;">new</span> ConsistentHashLoadBalance(nodes, 160<span style="color: #000000;">);
+</span><span style="color: #008080;">134</span> <span style="color: #000000;">        consistentHash.printTreeNode();
+</span><span style="color: #008080;">135</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">136</span> }</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;以上main方法执行的结果如下：</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;192.168.2.4:8080 ==&gt; 18075595<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;192.168.2.1:8080 ==&gt; 18286704<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;192.168.2.1:8080 ==&gt; 35659769<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;192.168.2.2:8080 ==&gt; 43448858<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;192.168.2.1:8080 ==&gt; 44075453<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;192.168.2.3:8080 ==&gt; 47625378<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;........(由于内容过多，不做全部展示)</p>
+<p>&nbsp;</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 至此哈希一致性算法的原理和实现描述完毕，欢迎大家讨论，如有不当的地方欢迎大家提出异议。</p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="https://www.cnblogs.com/markcd/category/1165262.html" target="_blank">算法</a></div>
+<div id="EntryTag">标签: <a href="https://www.cnblogs.com/markcd/tag/%E7%AE%97%E6%B3%95/">算法</a></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(8476237,cb_blogId,1);green_channel_success(this,'谢谢推荐！');">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow('005f7e31-66cb-4b32-51a1-08d54dba4453');" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/markcd/" target="_blank"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/20180218124351.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/markcd/">滴水穿石，写自己的故事</a><br>
+            <a href="https://home.cnblogs.com/u/markcd/followees">关注 - 1</a><br>
+            <a href="https://home.cnblogs.com/u/markcd/followers">粉丝 - 7</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow('005f7e31-66cb-4b32-51a1-08d54dba4453');return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(8476237,'Digg')">
+        <span class="diggnum" id="digg_count">1</span>
+    </div>
+    <div class="buryit" onclick="votePost(8476237,'Bury')">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="https://www.cnblogs.com/markcd/p/8456870.html" class="p_n_p_prefix">« </a> 上一篇：<a href="https://www.cnblogs.com/markcd/p/8456870.html" title="发布于2018-02-22 19:35">负载均衡算法WeightedRoundRobin(加权轮询)简介及算法实现</a><br><a href="https://www.cnblogs.com/markcd/p/8504674.html" class="p_n_p_prefix">» </a> 下一篇：<a href="https://www.cnblogs.com/markcd/p/8504674.html" title="发布于2018-03-04 14:38">Dubbo学习源码总结系列四--集群容错机制</a><br></div>
+</div>
+
+
+		</div>
+		<p class="postfoot">
+			posted on <span id="post-date">2018-03-03 21:54</span> <a href="https://www.cnblogs.com/markcd/">滴水穿石，写自己的故事</a> 阅读(<span id="post_view_count">5611</span>) 评论(<span id="post_comment_count">0</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=8476237" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(8476237);return false;">收藏</a>
+		</p>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=412265,cb_entryId=8476237,cb_blogApp=currentBlogApp,cb_blogUserGuid='005f7e31-66cb-4b32-51a1-08d54dba4453',cb_entryCreatedDate='2018/3/3 21:54:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=false;</script>
+	
+	</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="#" onclick="return RefreshPage();">刷新页面</a><a href="#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login('commentform');">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-工控')">【推荐】超50万C++/C#源码: 大型实时仿真组态图形源码</a><br><a href="https://www.grapecity.com.cn/developer/spreadjs?utm_source=cnblogs&amp;utm_medium=blogpage&amp;utm_term=bottom&amp;utm_content=SpreadJS&amp;utm_campaign=community" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-SpreadJS')">【前端】SpreadJS表格控件，可嵌入系统开发的在线Excel</a><br><a href="https://gitee.com/enterprises?from=bky-1" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-gitee')">【推荐】码云企业版，高效的企业级软件协作开发管理平台</a><br><a href="https://q.cnblogs.com/" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-博问')">【推荐】程序员问答平台，解决您开发中遇到的技术难题</a><br></div>
+<div id="opt_under_post"></div>
+<script async="async" src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/gpt.js"></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id="cnblogs_c1" class="c_ad_block">
+    <div id="div-gpt-ad-1546353474406-0" style="height:250px; width:300px;" data-google-query-id="CI-F17DUgeMCFQialgodp3oPWQ"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="1" data-load-complete="true" width="300" height="250" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_news"><div class="recomm-block"><b>相关博文：</b><br>·  <a href="https://www.cnblogs.com/xudong-bupt/p/3185194.html" target="_blank" onclick="clickRecomItmem(3185194)">一致性哈希算法应用与分析</a><br>·  <a href="https://www.cnblogs.com/xiaolang8762400/p/7290200.html" target="_blank" onclick="clickRecomItmem(7290200)">关于一致性hash算法</a><br>·  <a href="https://www.cnblogs.com/wicub/p/5991963.html" target="_blank" onclick="clickRecomItmem(5991963)">一致性哈希算法以及其PHP实现</a><br>·  <a href="https://www.cnblogs.com/lichangdiAndTennis/p/10632841.html" target="_blank" onclick="clickRecomItmem(10632841)">一致性哈希</a><br>·  <a href="https://www.cnblogs.com/jxr041100/p/8415986.html" target="_blank" onclick="clickRecomItmem(8415986)">系统设计  一致性hash算法的实现</a><br></div></div>
+<div id="cnblogs_c2" class="c_ad_block">
+    <div id="div-gpt-ad-1539008685004-0" style="height:60px; width:468px;" data-google-query-id="CJCF17DUgeMCFQialgodp3oPWQ"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="2" data-load-complete="true" width="468" height="60" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_kb"><div class="itnews c_ad_block"><b>最新新闻</b>：<br> ·  <a href="https://news.cnblogs.com/n/627298/" target="_blank">罗永浩谈谷歌砍掉平板线 ：主要是因为软件太烂</a><br> ·  <a href="https://news.cnblogs.com/n/627297/" target="_blank">超级无线充：东京大学研发出3㎡+360°无线充电技术</a><br> ·  <a href="https://news.cnblogs.com/n/627296/" target="_blank">微软李笛：为什么说画家小冰是最艰难的一次养成？</a><br> ·  <a href="https://news.cnblogs.com/n/627295/" target="_blank">微信朋友圈解封快手 腾讯/头条短视频之争再添变数</a><br> ·  <a href="https://news.cnblogs.com/n/627294/" target="_blank">彻底排除中国制造 美国要求境内5G设备不能在中国生产</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+</div>
+</div>
+<div id="leftmenu">
+
+
+<h3>导航</h3>
+<ul>
+<li>
+<a id="blog_nav_sitehome" href="https://www.cnblogs.com/">博客园</a></li>
+<li>
+<a id="blog_nav_myhome" class="two_words" href="https://www.cnblogs.com/markcd/">首页</a></li>
+<li>
+<a id="blog_nav_newpost" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li>
+<a id="blog_nav_contact" accesskey="9" class="two_words" rel="nofollow" href="https://msg.cnblogs.com/send/%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B">联系</a></li>
+<li>
+<a id="blog_nav_rss" class="two_words" href="https://www.cnblogs.com/markcd/rss">订阅</a>
+<a id="blog_nav_rss_image" href="https://www.cnblogs.com/markcd/rss"><img src="%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%E5%8F%8A%E5%AE%9E%E7%8E%B0%20-%20%E6%BB%B4%E6%B0%B4%E7%A9%BF%E7%9F%B3%EF%BC%8C%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%85%E4%BA%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/xml.gif" alt="订阅"></a>
+</li>
+<li>
+<a id="blog_nav_admin" class="two_words" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+
+<div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" title="Calendar" cellspacing="0" cellpadding="0">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/05/01');return false;">&lt;</a></td><td align="center">2019年6月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/07/01');return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" abbr="日" scope="col" align="center">日</th><th class="CalDayHeader" abbr="一" scope="col" align="center">一</th><th class="CalDayHeader" abbr="二" scope="col" align="center">二</th><th class="CalDayHeader" abbr="三" scope="col" align="center">三</th><th class="CalDayHeader" abbr="四" scope="col" align="center">四</th><th class="CalDayHeader" abbr="五" scope="col" align="center">五</th><th class="CalDayHeader" abbr="六" scope="col" align="center">六</th></tr><tr><td class="CalOtherMonthDay" align="center">26</td><td class="CalOtherMonthDay" align="center">27</td><td class="CalOtherMonthDay" align="center">28</td><td class="CalOtherMonthDay" align="center">29</td><td class="CalOtherMonthDay" align="center">30</td><td class="CalOtherMonthDay" align="center">31</td><td class="CalWeekendDay" align="center">1</td></tr><tr><td class="CalWeekendDay" align="center">2</td><td align="center">3</td><td align="center">4</td><td align="center">5</td><td align="center">6</td><td align="center">7</td><td class="CalWeekendDay" align="center">8</td></tr><tr><td class="CalWeekendDay" align="center">9</td><td align="center">10</td><td align="center">11</td><td align="center">12</td><td align="center">13</td><td align="center">14</td><td class="CalWeekendDay" align="center">15</td></tr><tr><td class="CalWeekendDay" align="center">16</td><td align="center">17</td><td align="center">18</td><td align="center">19</td><td align="center">20</td><td align="center">21</td><td class="CalWeekendDay" align="center">22</td></tr><tr><td class="CalWeekendDay" align="center">23</td><td class="CalTodayDay" align="center">24</td><td align="center">25</td><td align="center">26</td><td align="center">27</td><td align="center">28</td><td class="CalWeekendDay" align="center">29</td></tr><tr><td class="CalWeekendDay" align="center">30</td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+<meta name="vs_showGrid" content="False">
+
+<h3>公告</h3>
+<div id="blog-news"><div id="profile_block">昵称：<a href="https://home.cnblogs.com/u/markcd/">滴水穿石，写自己的故事</a><br>园龄：<a href="https://home.cnblogs.com/u/markcd/" title="入园时间：2018-02-18">1年4个月</a><br>粉丝：<a href="https://home.cnblogs.com/u/markcd/followers/">7</a><br>关注：<a href="https://home.cnblogs.com/u/markcd/followees/">1</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow('005f7e31-66cb-4b32-51a1-08d54dba4453')">+加关注</a></div><script>getFollowStatus('005f7e31-66cb-4b32-51a1-08d54dba4453')</script></div></div><script type="text/javascript">loadBlogNews();</script>
+
+<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></div>
+<div id="widget_my_google" class="div_my_zzk"><input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></div>
+</div>
+</div>
+
+</div><div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="https://www.cnblogs.com/markcd/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="https://www.cnblogs.com/markcd/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="https://www.cnblogs.com/markcd/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="https://www.cnblogs.com/markcd/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="https://www.cnblogs.com/markcd/tag/" title="我的博客的标签列表">我的标签</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+
+</div></div><div id="sidebar_toptags" class="sidebar-block">
+<h3 class="catListTitle">我的标签</h3>
+<div id="MyTag">
+<ul>
+<li><a href="https://www.cnblogs.com/markcd/tag/dubbo/">dubbo</a>(7)</li><li><a href="https://www.cnblogs.com/markcd/tag/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">单元测试</a>(6)</li><li><a href="https://www.cnblogs.com/markcd/tag/RPC/">RPC</a>(3)</li><li><a href="https://www.cnblogs.com/markcd/tag/%E7%AE%97%E6%B3%95/">算法</a>(2)</li><li><a href="https://www.cnblogs.com/markcd/tag/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>(2)</li>
+</ul>
+</div></div><div id="sidebar_categories">
+		<h3>随笔分类</h3>
+		
+				<ul>
+			
+				<li><a id="CatList_LinkList_0_Link_0" href="https://www.cnblogs.com/markcd/category/1164229.html">Dubbo(7)</a></li>
+			
+				<li><a id="CatList_LinkList_0_Link_1" href="https://www.cnblogs.com/markcd/category/1165262.html">算法(2)</a></li>
+			
+				</ul>
+			
+	
+		<h3>随笔档案</h3>
+		
+				<ul>
+			
+				<li><a id="CatList_LinkList_1_Link_0" href="https://www.cnblogs.com/markcd/archive/2018/05.html">2018年5月 (7)</a></li>
+			
+				<li><a id="CatList_LinkList_1_Link_1" href="https://www.cnblogs.com/markcd/archive/2018/03.html">2018年3月 (4)</a></li>
+			
+				<li><a id="CatList_LinkList_1_Link_2" href="https://www.cnblogs.com/markcd/archive/2018/02.html">2018年2月 (3)</a></li>
+			
+				</ul>
+			
+	</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap" style="display: none;">
+<h3 class="catListTitle">最新评论</h3>
+<div class="RecentComment" id="RecentComments">
+	<div id="RecentCommentsBlock"></div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<h3 class="catListTitle">阅读排行榜</h3>
+<div class="RecentComment" id="TopViewPosts"> 
+	<div id="TopViewPostsBlock"><ul><li><a href="https://www.cnblogs.com/markcd/p/8476237.html">1. 一致性哈希算法原理分析及实现(5610)</a></li><li><a href="https://www.cnblogs.com/markcd/p/9075060.html">2. Dubbo架构深入篇----RPC实现总结(5491)</a></li><li><a href="https://www.cnblogs.com/markcd/p/8456870.html">3. 负载均衡算法WeightedRoundRobin(加权轮询)简介及算法实现(4324)</a></li><li><a href="https://www.cnblogs.com/markcd/p/8504674.html">4. Dubbo学习源码总结系列四--集群容错机制(2674)</a></li><li><a href="https://www.cnblogs.com/markcd/p/8453260.html">5. Dubbo源码学习总结系列二 dubbo-rpc远程调用模块(2197)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap" style="display: none;">
+<h3 class="catListTitle">评论排行榜</h3>
+<div class="RecentComment" id="TopCommentsPosts">
+	<div id="TopFeedbackPostsBlock"></div>
+</div></div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div class="RecentComment">
+	<div id="TopDiggPostsBlock"><ul><li><a href="https://www.cnblogs.com/markcd/p/8476237.html">1. 一致性哈希算法原理分析及实现(1)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script>
+
+</div>
+</div>
+<div class="clear"></div>
+<div id="footer">
+
+<p id="footer">
+	Powered by: 
+	<br>
+	
+	<a id="Footer1_Hyperlink3" name="Hyperlink1" href="https://www.cnblogs.com/" style="font-family:Verdana;font-size:12px;">博客园</a>
+	<br>
+	Copyright © 滴水穿石，写自己的故事
+</p>
+</div>
+</div>
+
+
+
+
+</body></html>
