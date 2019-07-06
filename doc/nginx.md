@@ -6,6 +6,7 @@
 下载 wget http://nginx.org/download/nginx-1.12.2.tar.gz
 yum install openssl openssl-devel -y
 yum install pcre pcre-devel -y
+yum install gcc gcc-c++ kernel-devel -y
 setenforce 0
 systemctl status  firewalld ,查看并关闭
 systemctl stop  firewalld
@@ -29,6 +30,4 @@ github下载：https://github.com/replay/ngx_http_consistent_hash
 make clean 
 ./configure --prefix=/usr/local/src/nginx/installdir-nginx --user=www --group=www --with-http_ssl_module --with-http_stub_status_module --add-module=/usr/local/src/nginx/3module/ngx_http_consistent_hash-master
 make && make install
-
-
 
