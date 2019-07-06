@@ -14,6 +14,7 @@ GRANT ALL PRIVILEGES ON *.* TO 'liuxing'@'%' IDENTIFIED BY 'Liuxing009!' WITH GR
 [mysqld]
 character_set_server=utf8
 init_connect='SET NAMES utf8'
+create database rbac character set utf8;
 =========mysql 连接数 =================================
 1. mysql连接方式：mysql的连接都是tcp长连接，比如连接池初始化为20或者最大连接数1000，那就是20，或1000个tcp长连接，
 所有针对数据库的访问，都使用这1000个长连接管道进行访问数据库操作
