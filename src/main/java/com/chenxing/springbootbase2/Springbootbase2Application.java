@@ -1,8 +1,6 @@
 package com.chenxing.springbootbase2;
 
 /**
- * 比较旧了  netty-socketio  1.7.11
- * @author HXDFliuxing
  * */
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Value;
