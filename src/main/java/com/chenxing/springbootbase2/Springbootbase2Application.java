@@ -1,7 +1,7 @@
 package com.chenxing.springbootbase2;
 
 /**
- * 
+ * aa
  * */
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Value;
