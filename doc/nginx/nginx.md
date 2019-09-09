@@ -23,8 +23,8 @@ make && make install
 启动        ./nginx  
 重新加载./nginx -s  reload
 停止        ./nginx -s  stop
-===添加第三方模块==================
-5.一致性hash负载均衡模块
+===添加第三方模块（废弃，5自带了，6不完整）==================
+5.一致性hash负载均衡模块(这个模块nginx已经自带了)
  文件名：ngx_http_consistent_hash-master.zip
 github下载：https://github.com/replay/ngx_http_consistent_hash
 解压到某个目录：
