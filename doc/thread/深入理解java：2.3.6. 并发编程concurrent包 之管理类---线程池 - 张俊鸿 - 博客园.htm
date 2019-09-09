@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin">
+    <meta property="og:description" content="我们使用线程的时候就去创建一个线程，这样实现起来非常简便，但是就会有一个问题： 如果并发的线程数量很多，并且每个线程都是执行一个时间很短的任务就结束了，这样频繁创建线程就会大大降低系统的效率，因为频繁">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>深入理解java：2.3.6. 并发编程concurrent包 之管理类---线程池 - 张俊鸿 - 博客园</title>
+    
+    <link rel="stylesheet" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.css">
+    <link id="MainCss" rel="stylesheet" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-coffee.css">
+    
+    <link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-coffee-mobile.css">
+    
+    <link type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/my376908915/rss">
+    <link type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/my376908915/rsd.xml">
+    <link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/my376908915/wlwmanifest.xml">
+    <script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/amp4ads-host-v0.js"></script><script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_rendering_2019082901.js"></script><script async="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/analytics.js"></script><script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/encoder.js"></script><script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/jquery-2.js"></script>
+    <script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.js"></script>
+    <script>
+        var currentBlogId = 350406;
+        var currentBlogApp = 'my376908915';
+        var cb_enable_mathjax = false;
+        var isLogined = false;
+    </script>
+    
+    
+    
+<link rel="preload" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js" as="script"><script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js"></script><script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_2019082901.js" async=""></script></head>
+<body>
+    <a name="top"></a>
+    
+    
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a href="https://www.cnblogs.com/my376908915/"><img id="blogLogo" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/logo.gif" alt="返回主页"></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle HeaderMainTitle" href="https://www.cnblogs.com/my376908915/">张俊鸿</a>
+</h1>
+<h2>
+
+</h2>
+
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="navigator">
+			
+<ul id="navList">
+	<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">
+博客园</a>
+</li>
+	<li>
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/my376908915/">
+首页</a>
+</li>
+	<li>
+
+<a id="blog_nav_newpost" class="menu" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+新随笔</a>
+</li>
+	<li>
+<a id="blog_nav_contact" class="menu" href="https://msg.cnblogs.com/send/%E5%BC%A0%E4%BF%8A%E9%B8%BF">
+联系</a></li>
+	<li>
+<a id="blog_nav_admin" class="menu" href="https://i.cnblogs.com/">
+管理</a>
+</li>
+	<li>
+<a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/my376908915/rss/">
+订阅</a>
+	
+<a id="blog_nav_rss_image" href="https://www.cnblogs.com/my376908915/rss/">
+    <img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/xml.gif" alt="订阅">
+</a></li>
+</ul>
+
+
+
+			<div class="blogStats">
+				
+				<!--done-->
+随笔- 
+34&nbsp;
+文章- 
+0&nbsp;
+评论- 
+35&nbsp;
+
+
+
+				
+			</div><!--end: blogStats -->
+		</div><!--end: navigator 博客导航栏 -->
+		<div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class="post">
+		<h1 class="postTitle">
+			
+<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/my376908915/p/6761364.html">深入理解java：2.3.6. 并发编程concurrent包 之管理类---线程池</a>
+
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			
+<div id="cnblogs_post_body" class="blogpost-body ">
+    <p>&nbsp;&nbsp; 我们使用线程的时候就去创建一个线程，这样实现起来非常简便，但是就会有一个问题：</p>
+<p>　　如果并发的线程数量很多，并且每个线程都是<strong>执行一个时间很短的任务</strong>就结束了，这样<strong>频繁创建线程</strong>就会大大<strong>降低系统的效率</strong>，因为<strong>频繁创建线程和销毁线程</strong>需要时间。</p>
+<p>　　那么有没有一种办法使得线程可以复用，就是<strong>执行完一个任务，并不被销毁，而是可以继续执行其他的任务？</strong></p>
+<p>　　在Java中可以通过线程池来达到这样的效果。</p>
+<p>&nbsp;</p>
+<h2>一.Java中的ThreadPoolExecutor类</h2>
+<p>java.uitl.concurrent.ThreadPoolExecutor类是线程池中最核心的一个类，因此如果要透彻地了解Java中的线程池，必须先了解这个类。</p>
+<p>我们可以通过ThreadPoolExecutor来创建一个线程池。</p>
+<div id="highlighter_639211" class="syntaxhighlighter  ">
+<div class="lines">
+<div class="line alt1">
+<table>
+<tbody>
+<tr>
+<td class="number"><code>1</code></td>
+<td class="content"><code class="keyword">new</code> <code class="plain">ThreadPoolExecutor(corePoolSize, maximumPoolSize,<code class="plain">keepAliveTime, milliseconds,runnableTaskQueue, threadFactory,handler);</code></code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="line alt2">
+<table>
+<tbody>
+<tr>
+<td class="number">&nbsp;</td>
+<td class="content">&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>创建一个线程池需要输入几个参数：</p>
+<ul>
+<li><strong>corePoolSize（线程池的基本大小）</strong>：当提交一个任务到线程池时，线程池会创建一个线程来执行任
+务，即使其他空闲的基本线程能够执行新任务也会创建线程，等到需要执行的任务数大于线程池基本大小时就不再创建。如果调用了线程池的
+prestartAllCoreThreads()或者prestartCoreThread()方法，线程池会提前创建并启动所有基本线程。</li>
+<li><strong>maximumPoolSize（线程池最大大小）</strong>：线程池允许创建的最大线程数。如果<strong>队列满了</strong>，并且已创建的线程数小于最大线程数，则线程池会再创建新的线程执行任务。值得注意的是<strong>如果使用了无界的任务队列这个参数就没什么效果</strong>。</li>
+<li><strong>keepAliveTime（线程活动保持时间）</strong>：线程池的工作线程空闲后，保持存活的时间。所以如果任务很多，并且每个任务执行的时间比较短，可以调大这个时间，提高线程的利用率。默认情况下，只有当线程池中的线程数<strong>大于corePoolSize时，keepAliveTime才会起作用</strong>，直到线程池中的线程数不大于corePoolSize，即当线程池中的线程数大于corePoolSize时，如果一个线程空闲的时间达到keepAliveTime，则会终止，直到线程池中的线程数不超过corePoolSize。但是如果调用了<strong>allowCoreThreadTimeOut(boolean)方法</strong>，在线程池中的线程数不大于corePoolSize时，keepAliveTime参数也会起作用，直到线程池中的线程数为0；</li>
+<li><strong>TimeUnit（线程活动保持时间的单位）</strong>：可选的单位有天（DAYS），小时（HOURS），分钟（MINUTES），毫秒(MILLISECONDS)，微秒(MICROSECONDS, 千分之一毫秒)和毫微秒(NANOSECONDS, 千分之一微秒)。</li>
+<li><strong>runnableTaskQueue（任务队列）</strong>：用于保存等待执行的任务的阻塞队列。可以选择以下几个阻塞队列。<strong>一般使用LinkedBlockingQueue和Synchronous。</strong></li>
+</ul>
+<ol>
+<li>ArrayBlockingQueue：是一个基于数组结构的有界阻塞队列，此队列按 FIFO（先进先出）原则对元素进行排序。</li>
+<li><strong>LinkedBlockingQueue</strong>：一个基于链表结构的阻塞队列，此队列按FIFO （先进先出） 排序元素，吞吐量通常要高于ArrayBlockingQueue。<strong>静态工厂方法Executors.newFixedThreadPool()使用了这个队列</strong>。</li>
+<li><strong>SynchronousQueue</strong>：一个不存储元素的阻塞队列。每个插入操作必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态，吞吐量通常要高于LinkedBlockingQueue，静态工厂方法Executors.newCachedThreadPool使用了这个队列。</li>
+<li>PriorityBlockingQueue：一个具有优先级得无限阻塞队列。</li>
+</ol>
+<ul>
+<li><strong>ThreadFactory</strong>：用于设置创建线程的工厂，可以通过线程工厂给每个创建出来的线程<strong>设置更有意义的名字</strong>，Debug和定位问题时非常又帮助。</li>
+<li><strong>RejectedExecutionHandler（饱和策略）</strong>：当队列和线程池都满了，说明线程池处于饱和状态，那么必须采取一种策略处理提交的新任务。这个策略默认情况下是AbortPolicy，表示无法处理新任务时抛出异常。以下是JDK1.5提供的四种策略。
+<pre>ThreadPoolExecutor.AbortPolicy:丢弃任务并抛出RejectedExecutionException异常。 
+ThreadPoolExecutor.DiscardPolicy：也是丢弃任务，但是<strong>不抛出异常</strong>。 
+ThreadPoolExecutor.DiscardOldestPolicy：丢弃队列<strong>最前面的任务</strong>，然后重新尝试执行任务（重复此过程）
+ThreadPoolExecutor.CallerRunsPolicy：由调用线程处理该任务 </pre>
+</li>
+</ul>
+<p><span style="color: #000000;"><span style="color: #000000;"><span style="color: #000000;"><span style="color: #008000;"><span style="color: #008000;"><span style="color: #008000;"><span style="color: #008000;"><span style="color: #008000;"><span style="color: #008000;">在ThreadPoolExecutor类中有几个非常重要的方法：</span></span></span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre>execute()
+submit()
+shutdown()
+shutdownNow()</pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="color: #000000;">execute()方法，这个方法是ThreadPoolExecutor的核心方法，通过这个方法可以向线程池提交一个任务，交由线程池去执行。</span></p>
+<p>submit()方法，这个方法也是用来向线程池提交任务的，但是它和execute()方法不同，它能够返回任务执行的结果，去看submit()方法的实现，会发现它实际上还是调用的execute()方法，只不过它<strong>利用了Future来获取任务执行结果</strong>。</p>
+<p>我们可以通过这个future来判断任务是否执行成功，通过future的get方法来获取返回值，<strong>get方法会阻塞住直到任务完成。</strong>而使用get(long timeout, TimeUnit unit)方法则会阻塞一段时间后立即返回，这时有可能任务没有执行完。</p>
+<p><code class="plain">Object s = future.get();</code></p>
+<p>&nbsp;</p>
+<p>shutdown()，原理是只是将线程池的状态设置成SHUTDOWN状态，然后中断所有没有正在执行任务的线程。</p>
+<p>shutdownNow()，原理是遍历线程池中的工作线程，然后逐个调用线程的interrupt方法来中断线程，所以无法响应中断的任务可能永
+远无法终止。shutdownNow会首先将线程池的状态设置成STOP，然后尝试停止所有的正在执行或暂停任务的线程，并返回等待执行任务的列表。</p>
+<p>只要调用了这两个关闭方法的其中一个，isShutdown方法就会返回true。</p>
+<p>当所有的任务都已关闭后,才表示线程池关闭成功，这时调用isTerminaed方法会返回true。</p>
+<p>&nbsp;</p>
+<h2>二.深入剖析线程池实现原理</h2>
+<p><strong>1.线程池状态</strong></p>
+<p>　　在ThreadPoolExecutor中定义了一个volatile变量，另外定义了几个static final变量表示线程池的各个状态：</p>
+<div class="cnblogs_code">
+<pre>volatile int runState;
+static final int RUNNING    = 0;
+static final int SHUTDOWN   = 1;
+static final int STOP       = 2;
+static final int TERMINATED = 3;</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;　　runState表示当前线程池的状态，它是一个volatile变量用来保证线程之间的可见性；</p>
+<p>　　下面的几个static final变量表示runState可能的几个取值。</p>
+<p>　　当创建线程池后，初始时，线程池处于RUNNING状态；</p>
+<p>　　如果调用了shutdown()方法，则线程池处于SHUTDOWN状态，此时线程池不能够接受新的任务，它会等待所有任务执行完毕；</p>
+<p>　　如果调用了shutdownNow()方法，则线程池处于STOP状态，此时线程池不能接受新的任务，并且会去尝试终止正在执行的任务；</p>
+<p>　　当线程池处于SHUTDOWN或STOP状态，并且所有工作线程已经销毁，任务缓存队列已经清空或执行结束后，线程池被设置为TERMINATED状态。</p>
+<p>&nbsp;</p>
+<p><strong>2.任务的执行</strong></p>
+<p>　　我们先来看一下ThreadPoolExecutor类中其他的一些比较重要成员变量：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>private final <strong>BlockingQueue</strong>&lt;Runnable&gt; <strong>workQueue</strong>;              //任务缓存队列，用来存放等待执行的任务
+private final ReentrantLock mainLock = new <strong>ReentrantLock</strong>();   //线程池的主要状态锁，<strong>对线程池状态（比如线程池大小、runState等）的改变</strong>都要使用这个锁
+private final HashSet&lt;Worker&gt; workers = new HashSet&lt;Worker&gt;();  //用来存放工作集
+ 
+private <strong>volatile</strong> long  keepAliveTime;    //线程存活时间   
+private <strong>volatile</strong> boolean allowCoreThreadTimeOut;   //是否允许为核心线程设置存活时间
+private <strong>volatile</strong> int   corePoolSize;     //核心池的大小（即线程池中的线程数目大于这个参数时，提交的任务会被放进任务缓存队列）
+private <strong>volatile</strong> int   maximumPoolSize;   //线程池最大能容忍的线程数
+ 
+private <strong>volatile</strong> int   poolSize;       //线程池中当前的线程数
+ 
+private <strong>volatile</strong> RejectedExecutionHandler handler; //任务拒绝策略
+ 
+private <strong>volatile</strong> ThreadFactory threadFactory;   //线程工厂，用来创建线程
+ 
+private int largestPoolSize;   //用来记录线程池中曾经出现过的最大线程数
+ 
+private long completedTaskCount;   //用来记录已经执行完毕的任务个数</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p>&nbsp;　　每个变量的作用都已经标明出来了，这里要重点解释一下corePoolSize、maximumPoolSize、largestPoolSize三个变量。</p>
+<p>　　corePoolSize在很多地方被翻译成核心池大小，其实我的理解这个<strong>就是线程池的大小</strong>。</p>
+<p><strong>举个简单的例子：</strong></p>
+<p>　　假如有一个工厂，工厂里面有10个工人，每个工人同时只能做一件任务。</p>
+<p>　　因此只要当10个工人中有工人是空闲的，来了任务就分配给空闲的工人做；</p>
+<p>　　当10个工人都有任务在做时，如果还来了任务，就把任务进行排队等待；</p>
+<p>　　如果说新任务数目增长的速度远远大于工人做任务的速度，那么此时工厂主管可能会想补救措施，比如重新招4个临时工人进来；</p>
+<p>　　然后就将任务也分配给这4个临时工人做；</p>
+<p>　　如果说着14个工人做任务的速度还是不够，此时工厂主管可能就要考虑不再接收新的任务或者抛弃前面的一些任务了。</p>
+<p>　　当这14个工人当中有人空闲时，而新任务增长的速度又比较缓慢，工厂主管可能就考虑辞掉4个临时工了，只保持原来的10个工人，毕竟请额外的工人是要花钱的。</p>
+<p>&nbsp;</p>
+<p>　　这个例子中的<strong>corePoolSize</strong>就是10，而<strong>maximumPoolSize</strong>就是14（10+4）。</p>
+<p>　　也就是说corePoolSize就是线程池大小，maximumPoolSize在我看来是线程池的一种补救措施，即任务量突然过大时的一种补救措施。</p>
+<p>　　不过为了方便理解，在本文后面还是将corePoolSize翻译成核心池大小。</p>
+<p>　　largestPoolSize只是一个用来起记录作用的变量，用来记录线程池中曾经有过的最大线程数目（线程数的峰值），跟线程池的容量没有任何关系。</p>
+<p>&nbsp;</p>
+<p><strong>看一下任务从提交到最终执行完毕经历了哪些过程：</strong></p>
+<p>　　在ThreadPoolExecutor类中，最核心的任务提交方法是execute()方法，虽然通过submit也可以提交任务，但是实际上submit方法里面最终调用的还是execute()方法，所以我们只需要研究execute()方法的实现原理即可：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>public void execute(Runnable command) {
+    if (command == null)
+        throw new NullPointerException();
+    if (poolSize &gt;= corePoolSize || !addIfUnder<strong>CorePoolSize</strong>(command)) {//或 条件运算符，所以先计算前半部分的值，如果线程池中当前线程数<strong>小于</strong>核心池大小，<code class="comments hljs cmake">则创建线程并执行当前任务。当前线程数<strong>大于等于</strong>核心池大小 <code class="comments">或线程创建失败</code>，<code class="comments">则</code>进入<span class="hljs-keyword">IF</span></code>
+        if (runState == RUNNING &amp;&amp; <strong>workQueue</strong>.offer(command)) {//<code class="comments hljs">将当前任务放到工作队列中</code>
+            if (runState != RUNNING || poolSize == 0)
+                ensureQueuedTaskHandled(command);
+        }
+        else if (!addIfUnder<strong>MaximumPoolSize</strong>(command))<code class="comments hljs javascript"><span class="hljs-comment">//如果</span><code class="comments"><span class="hljs-comment">工作队列</span></code><span class="hljs-comment">已满，则创建一个线程执行任务。</span></code>
+            reject(command); // 任务拒绝处理
+    }
+}</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p><strong>这里总结一下主要有4点：</strong></p>
+<ul>
+<li>如果当前线程池中的线程数目<strong>小于corePoolSize</strong>，则每来一个任务，就会<strong>创建一个线程</strong>去执行这个任务；</li>
+<li>如果当前线程池中的线程数目<strong>&gt;=corePoolSize</strong>，则每来一个任务，会尝试将其<strong>添加到任务缓存队列</strong>当中，若添加成功，则该任务会等待空闲线程将其取出去执行；若添加失败（一般来说是<strong>任务缓存队列已满</strong>），则会尝试<strong>创建新的线程</strong>去执行这个任务；</li>
+<li>如果当前线程池中的线程数目<strong>达到maximumPoolSize</strong>，则会<strong>采取任务拒绝策略</strong>进行处理；</li>
+<li>如果线程池中的线程数量<strong>大于 corePoolSize</strong>时，如果某<strong>线程空闲时间超过keepAliveTime</strong>，线程将被<strong>终止</strong>，直至线程池中的线程数目不大于corePoolSize；如果允许为<strong>核心池中的线程设置存活时间</strong>，那么<strong>核心池中的线程空闲时间超过keepAliveTime</strong>，线程也会被<strong>终止</strong>。（线程的销毁，受制于<strong>keepAliveTime</strong>）</li>
+</ul>
+<p>&nbsp;</p>
+<p><strong>3.线程池中的线程初始化</strong></p>
+<p><strong>默认情况下，创建线程池之后，线程池中是没有线程的，需要提交任务之后才会创建线程。</strong></p>
+<p>　　在实际中如果需要线程池创建之后立即创建线程，可以通过以下两个方法办到：</p>
+<ul>
+<li>prestartCoreThread()：初始化一个核心线程；里面调用addIfUnderCorePoolSize(null);</li>
+<li>prestartAllCoreThreads()：初始化所有核心线程；里面调用while (addIfUnderCorePoolSize(null))</li>
+</ul>
+<p>&nbsp;</p>
+<p><strong><strong>4.<strong>线程池容量的动态调整</strong></strong></strong></p>
+<p>　　ThreadPoolExecutor提供了<strong>动态调整线程池容量大小</strong>的方法：setCorePoolSize()和setMaximumPoolSize()，</p>
+<ul>
+<li>setCorePoolSize：设置核心池大小</li>
+<li>setMaximumPoolSize：设置线程池最大能创建的线程数目大小</li>
+</ul>
+<p>　　当上述参数从小变大时，ThreadPoolExecutor进行线程赋值，还可能立即创建新的线程来执行任务。</p>
+<p>&nbsp;</p>
+<h2>三.使用示例</h2>
+<p>　　前面我们讨论了关于线程池的实现原理，这一节我们来看一下它的具体使用：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>public class Test {
+     public static void main(String[] args) {   
+         ThreadPoolExecutor executor = <strong>new ThreadPoolExecutor</strong>(5, 10, 200, TimeUnit.MILLISECONDS,
+                 new ArrayBlockingQueue&lt;Runnable&gt;(5));
+          
+         for(int i=0;i&lt;15;i++){
+             MyTask myTask = new MyTask(i);
+             executor.execute(myTask);
+             System.out.println("线程池中线程数目："+executor.getPoolSize()+"，队列中等待执行的任务数目："+
+             executor.getQueue().size()+"，已执行完的任务数目："+executor.getCompletedTaskCount());
+         }
+         executor.shutdown();
+     }
+}
+class MyTask implements Runnable {
+    private int taskNum;
+     
+    public MyTask(int num) {
+        this.taskNum = num;
+    }
+     
+    @Override
+    public void run() {
+        System.out.println("正在执行task "+taskNum);
+        try {
+            Thread.currentThread().sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("task "+taskNum+"执行完毕");
+    }
+}</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<pre>执行结果：<br>正在执行task 0
+线程池中线程数目：1，队列中等待执行的任务数目：0，已执行玩别的任务数目：0
+线程池中线程数目：2，队列中等待执行的任务数目：0，已执行玩别的任务数目：0
+正在执行task 1
+线程池中线程数目：3，队列中等待执行的任务数目：0，已执行玩别的任务数目：0
+正在执行task 2
+线程池中线程数目：4，队列中等待执行的任务数目：0，已执行玩别的任务数目：0
+正在执行task 3
+线程池中线程数目：5，队列中等待执行的任务数目：0，已执行玩别的任务数目：0
+正在执行task 4
+线程池中线程数目：5，队列中等待执行的任务数目：1，已执行玩别的任务数目：0
+线程池中线程数目：5，队列中等待执行的任务数目：2，已执行玩别的任务数目：0
+线程池中线程数目：5，队列中等待执行的任务数目：3，已执行玩别的任务数目：0
+线程池中线程数目：5，队列中等待执行的任务数目：4，已执行玩别的任务数目：0
+线程池中线程数目：5，队列中等待执行的任务数目：5，已执行玩别的任务数目：0
+线程池中线程数目：6，队列中等待执行的任务数目：5，已执行玩别的任务数目：0
+正在执行task 10
+线程池中线程数目：7，队列中等待执行的任务数目：5，已执行玩别的任务数目：0
+正在执行task 11
+线程池中线程数目：8，队列中等待执行的任务数目：5，已执行玩别的任务数目：0
+正在执行task 12
+线程池中线程数目：9，队列中等待执行的任务数目：5，已执行玩别的任务数目：0
+正在执行task 13
+线程池中线程数目：10，队列中等待执行的任务数目：5，已执行玩别的任务数目：0
+正在执行task 14
+task 3执行完毕
+task 0执行完毕
+task 2执行完毕
+task 1执行完毕
+正在执行task 8
+正在执行task 7
+正在执行task 6
+正在执行task 5
+task 4执行完毕
+task 10执行完毕
+task 11执行完毕
+task 13执行完毕
+task 12执行完毕
+正在执行task 9
+task 14执行完毕
+task 8执行完毕
+task 5执行完毕
+task 7执行完毕
+task 6执行完毕
+task 9执行完毕</pre>
+<p>当线程池中线程的数目大于5时，便将任务放入任务缓存队列里面，</p>
+<p>当任务缓存队列满了之后，再送来得新任务 便会直接创建新的线程。</p>
+<p>如果上面程序中，将for循环中改成执行20个任务，就会抛出任务拒绝异常了。</p>
+<p>&nbsp;</p>
+<p>不过在java doc中，并不提倡我们直接使用ThreadPoolExecutor，而是使用Executors类中提供的几个<strong>静态方法</strong>来创建线程池：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>//<strong>来任务就创建线程，当线程空闲超过60秒，销毁线程。 里面调用 ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue&lt;Runnable&gt;())</strong></pre>
+<pre>Executors.newCachedThreadPool(); </pre>
+<pre><br>//创建容量为1的缓冲池，<strong>里面调用 </strong>ThreadPoolExecutor(<strong>1, 1</strong>,0L, TimeUnit.MILLISECONDS,new <strong>LinkedBlockingQueue</strong>&lt;Runnable&gt;())</pre>
+<pre>Executors.newSingleThreadExecutor();   </pre>
+<pre><br>//创建固定容量大小的缓冲池，<strong>里面调用 ThreadPoolExecutor(int, int, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue&lt;Runnable&gt;());<br></strong></pre>
+<pre>Executors.newFixedThreadPool(int); </pre>
+<pre><strong>&nbsp;</strong></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<h2>四.如何合理配置线程池的大小</h2>
+<p>　　一般需要根据任务的类型来配置线程池大小：</p>
+<p>　　如果是CPU密集型任务，就需要尽量压榨CPU，参考值可以设为&nbsp;<em>N</em><sub>CPU</sub>+1</p>
+<p>　　如果是IO密集型任务，参考值可以设置为2*<em>N</em><sub>CPU</sub></p>
+<h3 class="title">如何合理地估算线程池大小？参考：http://ifeve.com/how-to-calculate-threadpool-size/</h3>
+<p>&nbsp;</p>
+<p><strong>另外，建议使用有界队列。</strong></p>
+<p>有界队列能增加系统的稳定性和预警能力，可以根据需要设大一点，比如几千。</p>
+<p>有一次我们组使用的后台任务线程池的队列和线程池全满了，不断的抛出抛弃任务的异常，通过排查发现是数据库出现了问题，导致执行SQL变得非常缓
+慢，因为后台任务线程池里的任务全是需要向数据库查询和插入数据的，所以导致线程池里的工作线程全部阻塞住，任务积压在线程池里。</p>
+<p>如果当时我们设置成无界队列，线程池的队列就会越来越多，有可能会撑满内存，导致整个系统不可用，而不只是后台任务出现问题。</p>
+<p>&nbsp;</p>
+<h2>线程池的监控</h2>
+<p><strong>通过线程池提供的参数进行监控</strong>。线程池里有一些属性在监控线程池的时候可以使用</p>
+<ul>
+<li>taskCount：线程池<strong>需要执行</strong>的任务数量。</li>
+<li>completedTaskCount：线程池在运行过程中<strong>已完成的任务数量</strong>。<strong>小于或等于taskCount</strong>。</li>
+<li>largestPoolSize：线程池<strong>曾经创建过的最大线程数量</strong>。通过这个数据可以知道<strong>线程池是否满过</strong>。如等于线程池的最大大小，则表示线程池曾经满了。</li>
+<li>getPoolSize:线程池的<strong>线程数量</strong>。如果线程池不销毁的话，池里的线程不会自动销毁，所以这个大小只增不减。</li>
+<li>getActiveCount：获取<strong>活动的线程数</strong>。</li>
+</ul>
+<p><strong>通过扩展线程池进行监控</strong>。通过继承线程池并重写线程池的<strong>beforeExecute</strong>，<strong>afterExecute</strong>和<strong>terminated</strong>方法，我们可以在任务执行前，执行后和线程池关闭前干一些事情。</p>
+<p>如监控任务的平均执行时间，最大执行时间和最小执行时间等。这几个方法在线程池里是空方法。如：</p>
+<div id="highlighter_682766" class="syntaxhighlighter  ">
+<div class="lines">
+<div class="line alt1">
+<table>
+<tbody>
+<tr>
+<td class="number"><code>1</code></td>
+<td class="content"><code class="plain">void beforeExecute(Thread t, Runnable r) { }</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+</div>
+<div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+
+
+    <div id="blog_post_info">
+<div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(6761364,cb_blogId,1);green_channel_success(this,'谢谢推荐！');">好文要顶</a>
+        <a id="green_channel_follow" onclick="follow('b7d6e141-6c26-e711-9fc1-ac853d9f53cc');" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/my376908915/">张俊鸿</a><br>
+            <a href="https://home.cnblogs.com/u/my376908915/followees/">关注 - 1</a><br>
+            <a href="https://home.cnblogs.com/u/my376908915/followers/">粉丝 - 56</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow('b7d6e141-6c26-e711-9fc1-ac853d9f53cc');return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(6761364,'Digg')">
+        <span class="diggnum" id="digg_count">0</span>
+    </div>
+    <div class="buryit" onclick="votePost(6761364,'Bury')">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+    <div class="clear"></div>
+    <div id="post_next_prev">
+
+    <a href="https://www.cnblogs.com/my376908915/p/6759941.html" class="p_n_p_prefix">« </a> 上一篇：    <a href="https://www.cnblogs.com/my376908915/p/6759941.html" title="发布于 2017-04-25 00:22">深入理解java：2.3.5. 并发编程concurrent包 之容器BlockingQueue（阻塞队列）</a>
+    <br>
+    <a href="https://www.cnblogs.com/my376908915/p/6763210.html" class="p_n_p_prefix">» </a> 下一篇：    <a href="https://www.cnblogs.com/my376908915/p/6763210.html" title="发布于 2017-04-25 17:16">深入理解java：2.4. 线程本地变量 java.lang.ThreadLocal类</a>
+
+</div>
+</div>
+		</div>
+		<div class="postDesc">posted @ 
+<span id="post-date">2017-04-25 12:13</span>&nbsp;<a href="https://www.cnblogs.com/my376908915/">张俊鸿</a> 阅读(<span id="post_view_count">921</span>) 评论(<span id="post_comment_count">1</span>) <a href="https://i.cnblogs.com/EditPosts.aspx?postid=6761364" rel="nofollow"> 编辑</a> <a href="javascript:void(0)" onclick="AddToWz(6761364); return false;">收藏</a>
+</div>
+	</div>
+	
+	
+</div><!--end: topics 文章、评论容器-->
+<script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/highlight.js"></script>
+<script>markdown_highlight();</script>
+<script>
+    var allowComments = true, cb_blogId = 350406, cb_blogApp = 'my376908915', cb_blogUserGuid = 'b7d6e141-6c26-e711-9fc1-ac853d9f53cc';
+    var cb_entryId = 6761364, cb_entryCreatedDate = '2017-04-25 12:13', cb_postType = 1; 
+    loadViewCount(cb_entryId);
+</script><a name="!comments"></a>
+<div id="blog-comments-placeholder">
+
+<div id="comment_pager_top">
+    
+</div>
+
+<!--done-->
+<br>
+<div class="feedback_area_title">评论</div>
+<div class="feedbackNoItems"><div class="feedbackNoItems"></div></div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+				</div>
+				
+<a href="#3694451" class="layer">#1楼</a>
+<a name="3694451" id="comment_anchor_3694451"></a>
+[<span class="louzhu">楼主</span>]
+        <span id="comment-maxId" style="display:none">3694451</span>
+        <span id="comment-maxDate" style="display:none">2017/5/17 下午3:01:48</span>
+
+<span class="comment_date">2017-05-17 15:01</span>
+
+ | 
+
+            <a id="a_comment_author_3694451" href="https://www.cnblogs.com/my376908915/" target="_blank">张俊鸿</a>
+
+			</div>
+			<div class="feedbackCon">
+				
+<div id="comment_body_3694451" class="blog_comment_body">
+    牛
+</div>
+        <div class="comment_vote">
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment('3694451', 'Digg', this);">
+                支持(0)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment('3694451', 'Bury', this);">
+                反对(0)
+            </a>
+        </div>
+        
+
+			</div>
+		</div>
+
+<div id="comment_pager_bottom">
+    
+</div>
+
+
+</div>
+<script>
+    var commentManager = new blogCommentManager();
+    commentManager.renderComments(0);
+</script>
+
+<div id="comment_form" class="commentform">
+    <a name="commentform"></a>
+    <div id="divCommentShow"></div>
+    <div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="#" onclick="return RefreshPage();">刷新页面</a><a href="#top">返回顶部</a></div>
+    <div id="comment_form_container"><div class="login_tips">
+    注册用户登录后才能发表评论，请 
+    <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login('commentform');">登录</a>
+     或 
+    <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，
+    <a href="https://www.cnblogs.com/">访问</a> 网站首页。
+</div></div>
+    <div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+    <div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-工控')">【推荐】超50万C++/C#源码: 大型实时仿真组态图形源码</a><br><a href="http://click.aliyun.com/m/1000074461/" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-阿里云')">【活动】阿里云910会员节多款云产品满减活动火热进行中</a><br><a href="https://www.ctyun.cn/activity/#/enterprise2?hmsr=%E5%8D%9A%E5%AE%A2%E5%9B%AD-0901-0%E5%85%83%E4%B8%8A%E4%BA%91&amp;hmpl=&amp;hmcu=&amp;hmkw=&amp;hmci=" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-天翼云')">【推荐】新手上天翼云，数十款云产品、新一代主机0元体验</a><br><a href="http://clickc.admaster.com.cn/c/a131574,b3595115,c1705,i0,m101,8a1,8b3,h" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-华为云微认证')">【推荐】零基础轻松玩转华为云产品，获壕礼加返百元大礼</a><br><a href="http://clickc.admaster.com.cn/c/a131575,b3595121,c1705,i0,m101,8a1,8b3,h" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-华为文字')">【推荐】华为云文字识别资源包重磅上市，1元万次限时抢购</a><br></div>
+    <div id="opt_under_post"></div>
+    <script async="async" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%EF%BC%9A2.3.6.%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8Bconcurrent%E5%8C%85%20%E4%B9%8B%E7%AE%A1%E7%90%86%E7%B1%BB---%E7%BA%BF%E7%A8%8B%E6%B1%A0%20-%20%E5%BC%A0%E4%BF%8A%E9%B8%BF%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/gpt.js"></script>
+    <script>
+        var googletag = googletag || {};
+        googletag.cmd = googletag.cmd || [];
+    </script>
+    <script>
+        googletag.cmd.push(function () {
+            googletag.defineSlot("/1090369/C1", [300, 250], "div-gpt-ad-1546353474406-0").addService(googletag.pubads());
+            googletag.defineSlot("/1090369/C2", [468, 60], "div-gpt-ad-1539008685004-0").addService(googletag.pubads());
+            googletag.pubads().enableSingleRequest();
+            googletag.enableServices();
+        });
+    </script>
+    <div id="cnblogs_c1" class="c_ad_block">
+        <div id="div-gpt-ad-1546353474406-0" style="height:250px; width:300px;" data-google-query-id="COyN1NzhwuQCFUXFvQodOl8Cug"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="1" data-load-complete="true" width="300" height="250" frameborder="0"></iframe></div></div>
+    </div>
+    <div id="under_post_news"><div class="recomm-block"><b>相关博文：</b><br>·  <a title="java并发编程-线程池的使用" href="https://www.cnblogs.com/jingblogs/p/5007862.html" target="_blank" onclick="clickRecomItmem(5007862)">java并发编程-线程池的使用</a><br>·  <a title="Java并发编程--线程池" href="https://www.cnblogs.com/wangyayong/p/7344425.html" target="_blank" onclick="clickRecomItmem(7344425)">Java并发编程--线程池</a><br>·  <a title="Java 并发--- 线程池" href="https://www.cnblogs.com/hesier/p/5930156.html" target="_blank" onclick="clickRecomItmem(5930156)">Java 并发--- 线程池</a><br>·  <a title="Java面试——线程池" href="https://www.cnblogs.com/chappell/p/9084496.html" target="_blank" onclick="clickRecomItmem(9084496)">Java面试——线程池</a><br>·  <a title="java并发编程（4）--线程池的使用" href="https://www.cnblogs.com/woshimrf/p/5249753.html" target="_blank" onclick="clickRecomItmem(5249753)">java并发编程（4）--线程池的使用</a><br></div></div>
+    <div id="cnblogs_c2" class="c_ad_block">
+        <div id="div-gpt-ad-1539008685004-0" style="height:60px; width:468px;" data-google-query-id="CLD40tzhwuQCFUXFvQodOl8Cug">
+            
+        <div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="2" data-load-complete="true" width="468" height="60" frameborder="0"></iframe></div></div>
+    </div>
+    <div id="under_post_kb">
+<div class="itnews c_ad_block">
+    <b>最新 IT 新闻</b>:
+    <br>
+ ·              <a href="https://news.cnblogs.com/n/636761/" target="_blank">华大智造 “超级生命计算机”DNBSEQ-T7 正式交付</a>
+            <br>
+ ·              <a href="https://news.cnblogs.com/n/636760/" target="_blank">华为布局第三代半导体材料 争夺5G时代主动权</a>
+            <br>
+ ·              <a href="https://news.cnblogs.com/n/636759/" target="_blank">百度起诉“假德邦”胜诉 获赔9万余元</a>
+            <br>
+ ·              <a href="https://news.cnblogs.com/n/636758/" target="_blank">正在揭开的左撇子之谜：左右脑以更协调的方式交流</a>
+            <br>
+ ·              <a href="https://news.cnblogs.com/n/636757/" target="_blank">Mozilla 计划在 2019 年 9 月底向美国用户推出 DNS over HTTPS</a>
+            <br>
+    » <a href="https://news.cnblogs.com/" title="IT 新闻" target="_blank">更多新闻...</a>
+</div></div>
+    <div id="HistoryToday" class="c_ad_block"></div>
+    <script type="text/javascript">
+        fixPostBody();
+        setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+        deliverAdT2();
+        deliverAdC1();
+        deliverAdC2();
+        loadNewsAndKb();
+        loadBlogSignature();
+LoadPostCategoriesTags(cb_blogId, cb_entryId);        LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+        GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+        loadOptUnderPost();
+        GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);
+    </script>
+</div></div>
+
+
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<div id="sidebar_news" class="newsItem"><!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	
+<div id="blog-news">
+    
+    <div id="profile_block">
+        昵称：
+        <a href="https://home.cnblogs.com/u/my376908915/">
+            张俊鸿
+        </a>
+        <br>
+        园龄：
+        <a href="https://home.cnblogs.com/u/my376908915/" title="入园时间：2017-04-21">
+            2年4个月
+        </a>
+        <br>
+        粉丝：
+        <a href="https://home.cnblogs.com/u/my376908915/followers/">
+            56
+        </a>
+        <br>
+        关注：
+        <a href="https://home.cnblogs.com/u/my376908915/followees/">
+            1
+        </a>
+        <div id="p_b_follow">
+<a href="javascript:void(0)" onclick="follow('b7d6e141-6c26-e711-9fc1-ac853d9f53cc')">+加关注</a></div>
+        <script>getFollowStatus('b7d6e141-6c26-e711-9fc1-ac853d9f53cc');</script>
+    </div>
+</div>
+</div>
+
+</div>
+
+			<div id="calendar"><div id="blog-calendar" style="">
+
+<table id="blogCalendar" class="Cal" title="Calendar" cellspacing="0" cellpadding="0" border="0">
+    <tbody>
+        <tr>
+            <td colspan="7">
+                <table class="CalTitle" cellspacing="0" border="0">
+                    <tbody>
+                        <tr>
+                            <td class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar('2019/08/09'); return false;">&lt;</a>
+                            </td>
+                            <td align="center">2019年9月</td>
+                            <td class="CalNextPrev" align="right">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar('2019/10/09'); return false;">&gt;</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+                    <th class="CalDayHeader" abbr="日" scope="col" align="center">日</th>
+                    <th class="CalDayHeader" abbr="一" scope="col" align="center">一</th>
+                    <th class="CalDayHeader" abbr="二" scope="col" align="center">二</th>
+                    <th class="CalDayHeader" abbr="三" scope="col" align="center">三</th>
+                    <th class="CalDayHeader" abbr="四" scope="col" align="center">四</th>
+                    <th class="CalDayHeader" abbr="五" scope="col" align="center">五</th>
+                    <th class="CalDayHeader" abbr="六" scope="col" align="center">六</th>
+        </tr>
+            <tr>
+                        <td class="CalWeekendDay" align="center">
+                            1
+                        </td>
+                        <td class="" align="center">
+                            2
+                        </td>
+                        <td class="" align="center">
+                            3
+                        </td>
+                        <td class="" align="center">
+                            4
+                        </td>
+                        <td class="" align="center">
+                            5
+                        </td>
+                        <td class="" align="center">
+                            6
+                        </td>
+                    <td class="CalWeekendDay" align="center">
+                        7
+                    </td>
+            </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            8
+                        </td>
+                            <td class="CalTodayDay" align="center">
+                                9
+                            </td>
+                            <td class="" align="center">
+                                10
+                            </td>
+                            <td class="" align="center">
+                                11
+                            </td>
+                            <td class="" align="center">
+                                12
+                            </td>
+                            <td class="" align="center">
+                                13
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            14
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            15
+                        </td>
+                            <td class="" align="center">
+                                16
+                            </td>
+                            <td class="" align="center">
+                                17
+                            </td>
+                            <td class="" align="center">
+                                18
+                            </td>
+                            <td class="" align="center">
+                                19
+                            </td>
+                            <td class="" align="center">
+                                20
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            21
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            22
+                        </td>
+                            <td class="" align="center">
+                                23
+                            </td>
+                            <td class="" align="center">
+                                24
+                            </td>
+                            <td class="" align="center">
+                                25
+                            </td>
+                            <td class="" align="center">
+                                26
+                            </td>
+                            <td class="" align="center">
+                                27
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            28
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            29
+                        </td>
+                            <td class="" align="center">
+                                30
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                1
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                2
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                3
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                4
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            5
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalOtherMonthDay" align="center">
+                            6
+                        </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                7
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                8
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                9
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                10
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                11
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            12
+                        </td>
+                </tr>
+    </tbody>
+</table></div><script>loadBlogDefaultCalendar();</script></div>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn">
+
+<!-- 搜索 -->
+<div id="sidebar_search" class="sidebar-block">
+    <div id="sidebar_search" class="mySearch">
+        <h3 class="catListTitle">搜索</h3>
+        <div id="sidebar_search_box">
+            <div id="widget_my_zzk" class="div_my_zzk">
+                <input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk">
+            </div>
+            <div id="widget_my_google" class="div_my_zzk">
+                <input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 常用链接 -->
+<div id="sidebar_shortcut" class="sidebar-block">
+    <div class="catListLink">
+<h3 class="catListTitle">
+常用链接
+</h3>
+<ul>
+		<li>
+
+<a href="https://www.cnblogs.com/my376908915/p/" title="我的博客的随笔列表">我的随笔</a>
+</li>
+		<li>
+
+<a href="https://www.cnblogs.com/my376908915/MyComments.html" title="我的发表过的评论列表">我的评论</a>
+</li>
+		<li>
+
+<a href="https://www.cnblogs.com/my376908915/OtherPosts.html" title="我评论过的随笔列表">我的参与</a>
+</li>
+		<li>
+
+<a href="https://www.cnblogs.com/my376908915/RecentComments.html" title="我的博客的评论列表">最新评论</a>
+</li>
+		<li>
+
+<a href="https://www.cnblogs.com/my376908915/tag/" title="我的博客的标签列表">我的标签</a>
+</li>
+
+<li><a id="itemListLink" onclick="this.blur();WarpClass('itemListLink', 'itemListLin_con');return false;" href="#">更多链接</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+<ul>
+
+</ul>
+</div>
+</div>
+
+
+</div>
+
+<!-- 最新随笔 -->
+
+
+
+<!-- 我的标签 -->
+<div id="sidebar_toptags" class="sidebar-block">
+    
+</div>
+
+<!-- 积分与排名 -->
+
+
+<!-- 随笔分类、随笔档案、文章分类、新闻分类、相册、链接 -->
+<div id="sidebar_categories">
+    
+<div class="catListPostArchive">
+<h3 class="catListTitle">
+
+随笔档案
+
+
+</h3>
+
+
+<ul>
+
+<li>
+<a href="https://www.cnblogs.com/my376908915/archive/2017/06.html" rel="">
+    2017年6月(5)
+</a>
+ 
+</li>
+<li>
+<a href="https://www.cnblogs.com/my376908915/archive/2017/05.html" rel="">
+    2017年5月(6)
+</a>
+ 
+</li>
+<li>
+<a href="https://www.cnblogs.com/my376908915/archive/2017/04.html" rel="">
+    2017年4月(23)
+</a>
+ 
+</li>
+
+</ul>
+
+
+</div>
+
+
+</div>
+
+<!-- 最新评论 -->
+<div id="sidebar_recentcomments" class="sidebar-block">
+    <div class="catListComment">
+<h3 class="catListTitle">最新评论</h3>
+
+	<div class="RecentCommentBlock">
+        <ul>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/my376908915/p/6763210.html#4330752">1. Re:深入理解java：2.4. 线程本地变量 java.lang.ThreadLocal类</a></li>
+                    <li class="recent_comment_body">@ 张俊鸿才发现，你是在自己回复自己吗，233333...</li>
+                    <li class="recent_comment_author">--惆怅于取名的程序猿</li>
+                    <li class="recent_comment_title"><a href="http://www.cnblogs.com/my376908915/p/6812666.html#4019598">2. Re:深入理解java：4.3. 框架编程之MyBatis原理深入解析</a></li>
+                    <li class="recent_comment_body">你是怎么做到的？？？</li>
+                    <li class="recent_comment_author">--dsger</li>
+                    <li class="recent_comment_title"><a href="http://www.cnblogs.com/my376908915/p/6812666.html#3947139">3. Re:深入理解java：4.3. 框架编程之MyBatis原理深入解析</a></li>
+                    <li class="recent_comment_body">膜拜大佬</li>
+                    <li class="recent_comment_author">--di与aop</li>
+                    <li class="recent_comment_title"><a href="http://www.cnblogs.com/my376908915/p/6757833.html#3761651">4. Re:深入理解java：2.2. 同步锁Synchronized及其实现原理</a></li>
+                    <li class="recent_comment_body">收益匪浅</li>
+                    <li class="recent_comment_author">--一步一步学</li>
+                    <li class="recent_comment_title"><a href="http://www.cnblogs.com/my376908915/p/6928537.html#3745148">5. Re:Java 架构师 -- 必读书单</a></li>
+                    <li class="recent_comment_body">发现一个很靠谱的Java书单 [Java工程师的终极书单](<a href="" target="_blank"></a>)</li>
+                    <li class="recent_comment_author">--liershui</li>
+        </ul>
+    </div>
+</div>
+
+
+</div>
+
+
+
+<!-- 阅读排行榜 -->
+<div id="sidebar_topviewedposts" class="sidebar-block">
+    <div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6813321.html">
+                            1. 深入理解java：5. Java分布式架构(61690)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6757833.html">
+                            2. 深入理解java：2.2. 同步锁Synchronized及其实现原理(6773)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6763210.html">
+                            3. 深入理解java：2.4. 线程本地变量 java.lang.ThreadLocal类(3440)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6825896.html">
+                            4. Java 200道题(2767)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6758681.html">
+                            5. 深入理解java：2.3.2. 并发编程concurrent包  之重入锁/读写锁/条件锁(2522)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+
+</div>
+
+<!-- 评论排行榜 -->
+<div id="sidebar_topcommentedposts" class="sidebar-block">
+    <div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6812666.html">
+                            1. 深入理解java：4.3. 框架编程之MyBatis原理深入解析(3)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6928537.html">
+                            2. Java 架构师 -- 必读书单(3)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6763210.html">
+                            3. 深入理解java：2.4. 线程本地变量 java.lang.ThreadLocal类(2)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6928394.html">
+                            4. Java程序员的职业发展道路    附：大型网站 -- 架构技能图谱（Java版）(2)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/my376908915/p/6757833.html">
+                            5. 深入理解java：2.2. 同步锁Synchronized及其实现原理(2)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+
+</div>
+
+<!-- 推荐排行榜 -->
+<div id="sidebar_topdiggedposts" class="sidebar-block">
+    <div id="topdigg_posts_wrap">
+    <div class="catListView">
+        <h3 class="catListTitle">推荐排行榜</h3>
+        <div id="TopDiggPostsBlock">
+            <ul style="word-break: break-all">
+                        <li>
+                            <a href="https://www.cnblogs.com/my376908915/p/6813321.html">
+                                1. 深入理解java：5. Java分布式架构(5)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/my376908915/p/6813036.html">
+                                2. 深入理解java：4.3.1. 框架编程之MyBatis---SQL语句执行的完整流程(1)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/my376908915/p/6763210.html">
+                                3. 深入理解java：2.4. 线程本地变量 java.lang.ThreadLocal类(1)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/my376908915/p/6928537.html">
+                                4. Java 架构师 -- 必读书单(1)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/my376908915/p/6757833.html">
+                                5. 深入理解java：2.2. 同步锁Synchronized及其实现原理(1)
+                            </a>
+                        </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</div></div>
+                    <script>loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		<!--done-->
+Copyright © 2019 张俊鸿
+<br><span id="poweredby">Powered by .NET Core 3.0.0-preview9-19423-09 on Linux</span>
+
+
+
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+
+    
+
+
+</body></html>
